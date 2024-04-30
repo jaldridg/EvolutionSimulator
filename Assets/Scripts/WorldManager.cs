@@ -11,7 +11,7 @@ public class WorldManager : MonoBehaviour
     public GameObject food;
 
     // The rate that hunger goes down per second
-    public const float HUNGER_DECAY = 3.0f;
+    public const float HUNGER_DECAY = 1.0f;
 
     // The number of world units given to each starting creature
     public const float SPAWN_SPARCITY = 50.0f;
@@ -35,10 +35,7 @@ public class WorldManager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    void Update() { }
 
     // Assumes the world is a square plane
     public static Vector3 GetRandomWorldPosition() {

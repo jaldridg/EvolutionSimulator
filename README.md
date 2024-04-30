@@ -19,3 +19,4 @@ I've always wanted to make an ecosystem and watch creatures adapt and evolve. He
 - Smarter creatures
     - Creatures will wander shorter distances. This means they can respond to their needs faster
     - Creatures now move towards closest food when hungry
+    - If a creature's approaching food and gets eaten, they'll find the next closest food

@@ -17,29 +17,34 @@ public class Movement : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         body = GetComponent<Biology>();
-        agent.destination = WorldManager.GetNearbyWorldPosition(transform.position);
+        StartCoroutine(SetWaypoint());
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        // Move to new locations over and over
-        if (agent.remainingDistance < agent.stoppingDistance + 0.5f) {
-            Vector3 waypoint;
+    void Update() { }
+
+    // Sets the creature destination based on its needs
+    IEnumerator SetWaypoint() {
+        while (true) {
+            // Flag waypoint as invalid so it can be set
+            Vector3 waypoint = Vector3.zero;
             // Look for food if hungry
             if (body.food < body.maxFood / 2) {
                 GameObject closestFood = FindClosestFood();
-                if (closestFood == null) {
+                waypoint = closestFood == null ? Vector3.positiveInfinity : closestFood.transform.position;
+            }
+
+            // Wander if can't reach food or not hungry
+            if (waypoint == Vector3.zero) {
+                // Get new waypoint if previous one has been reached
+                if (agent.remainingDistance < agent.stoppingDistance + 0.5f) {
                     waypoint = WorldManager.GetNearbyWorldPosition(transform.position);
                 } else {
-                    waypoint = closestFood.transform.position;
+                    waypoint = agent.destination;
                 }
-
-            // Wander
-            } else {
-                waypoint = WorldManager.GetNearbyWorldPosition(transform.position);
             }
             agent.destination = waypoint;
+            yield return new WaitForSeconds(1);
         }
     }
 
