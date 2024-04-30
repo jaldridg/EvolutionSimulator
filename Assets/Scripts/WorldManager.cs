@@ -10,14 +10,17 @@ public class WorldManager : MonoBehaviour
     public GameObject creature;
     public GameObject food;
 
-    // The rate that hunger goes down per second
-    public const float HUNGER_DECAY = 1.0f;
+    // The energy cost of movement
+    public const float MOVEMENT_COST = 0.2f;
 
     // The number of world units given to each starting creature
     public const float SPAWN_SPARCITY = 50.0f;
 
     // The rate that food spawns in the world (food spawns per second)
-    public const float FOOD_RATE = 0.5f;
+    public const float FOOD_RATE = 1.0f;
+
+    // How much food satisfies a creature's need to eat
+    public const float FOOD_NUTRITION = 80.0f;
     
     // Note: planeScale is not tied to ingame size
     private static float planeScale;

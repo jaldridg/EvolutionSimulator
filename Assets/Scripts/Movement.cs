@@ -28,13 +28,15 @@ public class Movement : MonoBehaviour
         while (true) {
             // Flag waypoint as invalid so it can be set
             Vector3 waypoint = Vector3.zero;
-            // Look for food if hungry
-            if (body.food < body.maxFood / 2) {
+            // Look for food if hungry or injured
+            bool hungry = body.food < body.stomachCapacity / 2;
+            bool healthy = body.health == body.maxHealth;
+            if (hungry || !healthy) {
                 GameObject closestFood = FindClosestFood();
-                waypoint = closestFood == null ? Vector3.positiveInfinity : closestFood.transform.position;
+                waypoint = closestFood == null ? Vector3.zero : closestFood.transform.position;
             }
 
-            // Wander if can't reach food or not hungry
+            // Wander if else
             if (waypoint == Vector3.zero) {
                 // Get new waypoint if previous one has been reached
                 if (agent.remainingDistance < agent.stoppingDistance + 0.5f) {
