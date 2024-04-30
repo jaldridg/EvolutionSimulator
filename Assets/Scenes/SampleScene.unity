@@ -123,51 +123,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &76211692
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 76211694}
-  - component: {fileID: 76211693}
-  m_Layer: 0
-  m_Name: World
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &76211693
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 76211692}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fca2897672194964dbb1250a75c6d54e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  creature: {fileID: 6054611402904150870, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
---- !u!4 &76211694
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 76211692}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.1476102, y: -2.2529259, z: 2.9953895}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -354,86 +309,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1103085466 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6054611402904150870, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-  m_PrefabInstance: {fileID: 1144323579}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1103085467
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1103085466}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13a09909986ed704592ca1a579cc3991, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  navMesh: {fileID: 1417938784}
---- !u!1001 &1144323579
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 6054611402904150870, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_Name
-      value: Creature
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6841700965177671755, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 5936068000728134930, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-    - {fileID: 3301272663065605720, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6054611402904150870, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1103085467}
-  m_SourcePrefab: {fileID: 100100000, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
 --- !u!1 &1417938783
 GameObject:
   m_ObjectHideFlags: 0
@@ -447,6 +322,7 @@ GameObject:
   - component: {fileID: 1417938786}
   - component: {fileID: 1417938785}
   - component: {fileID: 1417938784}
+  - component: {fileID: 1417938789}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -572,6 +448,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1417938789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1417938783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fca2897672194964dbb1250a75c6d54e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  creature: {fileID: 6054611402904150870, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
+  food: {fileID: 1034438211061819804, guid: 07a89055b1d92794c90e7ff68beea8c6, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -579,5 +469,3 @@ SceneRoots:
   - {fileID: 963194228}
   - {fileID: 705507995}
   - {fileID: 1417938788}
-  - {fileID: 1144323579}
-  - {fileID: 76211694}
