@@ -10,11 +10,8 @@ public class WorldManager : MonoBehaviour
     public GameObject creature;
     public GameObject food;
 
-    // The energy cost of movement
-    public const float MOVEMENT_COST = 0.2f;
-
     // The number of world units given to each starting creature
-    public const float SPAWN_SPARCITY = 50.0f;
+    public const float SPAWN_SPARCITY = 100.0f;
 
     // The rate that food spawns in the world (food spawns per second)
     public const float FOOD_RATE = 1.0f;
@@ -32,7 +29,9 @@ public class WorldManager : MonoBehaviour
         float worldArea = (planeScale * 5) * (planeScale * 5);
 
         for (int i = 0; i < worldArea / SPAWN_SPARCITY; i++) {
-            Instantiate(creature, GetRandomWorldPosition(), Quaternion.identity);
+            GameObject startingCreature = Instantiate(creature, GetRandomWorldPosition(), Quaternion.identity);
+            Biology bio = startingCreature.GetComponent<Biology>();
+            bio.increaseGeneration(0);
         }
         StartCoroutine(SpawnFood());
     }

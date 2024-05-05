@@ -35,4 +35,8 @@ I've always wanted to make an ecosystem and watch creatures adapt and evolve. He
     - Steadily decreases health when high enough, ramping up slowly
 - Speed
     - Move speed and turn speed decrease when hungry or old
+
+0.3.0: Evolution - IN PROGRESS
+- Creatures now reproduce
+    - Maturity point created when creatures may reproduce
     

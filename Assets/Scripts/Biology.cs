@@ -6,8 +6,17 @@ using UnityEngine.AI;
 // Defines the creature's needs and how they affect the creature
 public class Biology : MonoBehaviour
 {
+    [SerializeField] private int generation;
+
     [HideInInspector] public float stomachCapacity;
     public float food;
+
+    // The percent fullness of the stomach where creatures are well fed
+    public static float WELL_FED_CONSTANT = 0.8f;
+    // The percent fullness of the stomach where creatures will begin looking for food
+    public static float HUNGER_CONSTANT = 0.5f;
+    // The percent fullness of the stomach where creatures will have negative effects from hunger
+    public static float STARVATION_CONSTANT = 0.25f;
 
     public float maxSpeed;
     public float maxTurnSpeed;
@@ -22,7 +31,15 @@ public class Biology : MonoBehaviour
 
     // In seconds - the point that creature's start having negative health effects due to age
     [HideInInspector] public float oldAgePoint;
+    [HideInInspector] public float maturityPoint;
     public float age;
+
+    // The total energy the creature needs to spend to reproduce
+    public float offspringEnergyCost;
+
+    // The amount of energy expended to produce the next offspring
+    public float offspringEnergySpent;
+
 
     /* To implement
         energy
@@ -69,8 +86,15 @@ public class Biology : MonoBehaviour
         mass = 1.0f;
 
         // Age related
-        age = 0.0f;
         oldAgePoint = 180.0f;
+        maturityPoint = oldAgePoint / 3.0f;
+        age = 0.0f;
+
+        // Reproduction related
+        offspringEnergyCost = 25.0f;
+        offspringEnergySpent = 0.0f;
+
+        gameObject.name = "Creature (Gen: " + generation + ")";
 
         StartCoroutine(IncreaseAge());
     }
@@ -78,35 +102,47 @@ public class Biology : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Use environmental and internal factors to affect creature's state
+        /*********** Use environmental and internal factors to affect creature's state **************/
 
         // Set energy level
         // Well fed buff
-        if (food > stomachCapacity * 0.8f) {
-            energyLevel = food / (stomachCapacity * 0.8f);
+        if (food > stomachCapacity * WELL_FED_CONSTANT) {
+            energyLevel = food / (stomachCapacity * WELL_FED_CONSTANT);
 
         // Starvation penalty
-        } else if (food < stomachCapacity * 0.3f) {
-            energyLevel = 0.5f + 0.5f * (food / (stomachCapacity * 0.3f));
+        } else if (food < stomachCapacity * STARVATION_CONSTANT) {
+            energyLevel = 0.5f + 0.5f * (food / (stomachCapacity * STARVATION_CONSTANT));
 
         // Normal enery levels
         } else {
             energyLevel = 1.0f;
         }
 
-        float movementmultiplier = Mathf.Min(energyLevel, 1); 
-        agent.speed = maxSpeed * movementmultiplier;
-        agent.angularSpeed = maxTurnSpeed * movementmultiplier;
+        float movementMultiplier = Mathf.Min(energyLevel, 1); 
+        agent.speed = maxSpeed * movementMultiplier;
+        agent.angularSpeed = maxTurnSpeed * movementMultiplier;
 
-        // Model off kinetic energy formula
-        float energyDemand = mass * agent.speed * agent.speed * MOVEMENT_CONSTANT + BASE_ENERGY_EXPENSE ;
+        // See how much energy should be spent on reproduction
+        float offspringEnergy = 0.0f;
+        if (age > maturityPoint) {
+            offspringEnergy = food > stomachCapacity * HUNGER_CONSTANT ? energyLevel : 0.0f;
+        }
+        offspringEnergySpent += offspringEnergy * Time.deltaTime;
 
+        // Modeled off kinetic energy formula
+        float movementEnergy = mass * agent.speed * agent.speed * MOVEMENT_CONSTANT;
+
+        float energyDemand = BASE_ENERGY_EXPENSE + movementEnergy + offspringEnergy;
         food = Mathf.Max(food - energyDemand * Time.deltaTime, 0);
 
-        // use energy level to determine regeneration
-        // use energy level to test 
+        // Reproduce if enough energy has been put into it
+        if (offspringEnergySpent >= offspringEnergyCost) {
+            GameObject offspring = Instantiate(world.creature, transform.position, Quaternion.identity);
+            offspring.GetComponent<Biology>().increaseGeneration(generation);
+            offspringEnergySpent = 0.0f;
+        }
 
-        // Enact the consequences of creature's state
+        /*********** Enact the consequences of creature's state **************/
         if (energyLevel > 1.0f) {
             float regenerationRate = REGENERATION_CONSTANT * (energyLevel - 1) * maxHealth * Time.deltaTime;
             health = Mathf.Min(health + regenerationRate, maxHealth);
@@ -130,6 +166,10 @@ public class Biology : MonoBehaviour
             }
             yield return new WaitForSeconds(1);
         }
+    }
+
+    public void increaseGeneration(int gen) {
+        generation = gen + 1;
     }
 
     public void Eat() {
