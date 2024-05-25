@@ -79,8 +79,8 @@ public class Biology : MonoBehaviour
         health = maxHealth;
 
         // Food related
-        stomachCapacity = 100.0f;
-        food = 80.0f;
+        stomachCapacity = 200.0f;
+        food = stomachCapacity * WELL_FED_CONSTANT;
 
         // Body related
         mass = 1.0f;
@@ -94,7 +94,7 @@ public class Biology : MonoBehaviour
         offspringEnergyCost = 25.0f;
         offspringEnergySpent = 0.0f;
 
-        gameObject.name = "Creature (Gen: " + generation + ")";
+        gameObject.name = "Creature (Gen " + generation + ")";
 
         StartCoroutine(IncreaseAge());
     }
