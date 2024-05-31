@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using UnityEngine.UIElements.Experimental;
 
 public class CameraUI : MonoBehaviour
@@ -18,9 +19,16 @@ public class CameraUI : MonoBehaviour
 
     private Vector3 cameraZoomDirection;
 
+    [SerializeField] private Camera camera;
+
+    [SerializeField] private LayerMask creatureMask;
+
+    public GameObject selectedCreature;
+
     // Start is called before the first frame update
     void Start()
     {
+        selectedCreature = null;
         transform.position = new Vector3(0.0f, STARTING_CAMERA_HEIGHT, 0.0f);
     }
 
@@ -37,7 +45,13 @@ public class CameraUI : MonoBehaviour
         } 
         else if (cameraHeight > MAX_CAMERA_HEIGHT) {
             transform.position = new Vector3(transform.position.x, MAX_CAMERA_HEIGHT, transform.position.z);
-        }        
+        }
+
+        // Lock onto creature if selected
+        if (selectedCreature) {
+            Vector3 creaturePosition = selectedCreature.transform.position;
+            transform.position = new Vector3(creaturePosition.x, transform.position.y, creaturePosition.z);
+        }
     }
 
     public void OnMove(InputValue value) {
@@ -52,5 +66,19 @@ public class CameraUI : MonoBehaviour
         Vector3 scrollDirection = new Vector3(0.0f, -scroll, 0.0f);
         float cameraHeight = transform.position.y;
         cameraMovementDirection = scrollDirection * cameraHeight * CAMERA_ZOOM_SPEED;
+    }
+
+    public void OnSelect() {
+        // Raycast from camera to mouse to see if we're hovering over a creature
+        Ray camToWorld = camera.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(camToWorld.origin, camToWorld.direction * 100.0f, Color.red, 2.0f);
+
+        if (!Physics.Raycast(camToWorld, out RaycastHit hit, float.PositiveInfinity, creatureMask)) {
+            selectedCreature = null;
+            return;
+        }
+
+        // If we've reached this point, we've selected a creature
+        selectedCreature = hit.transform.gameObject;
     }
 }

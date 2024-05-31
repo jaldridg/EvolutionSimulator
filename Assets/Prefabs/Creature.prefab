@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6117944067629021745}
   - component: {fileID: 7036669163089722134}
   - component: {fileID: 5283331277927672333}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Creature
   m_TagString: Creature
   m_Icon: {fileID: 0}
@@ -97,6 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6463ea117a578974ab3cdccc4a25083f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  generation: 0
   stomachCapacity: 0
   food: 0
   maxSpeed: 0
@@ -110,7 +111,6 @@ MonoBehaviour:
   age: 0
   offspringEnergyCost: 0
   offspringEnergySpent: 0
-  offspring: {fileID: 6054611402904150870}
 --- !u!114 &7036669163089722134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157,7 +157,7 @@ GameObject:
   - component: {fileID: 757257884111504762}
   - component: {fileID: 2212353679254299925}
   - component: {fileID: 4175154753224547377}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
