@@ -71,7 +71,6 @@ public class CameraUI : MonoBehaviour
     public void OnSelect() {
         // Raycast from camera to mouse to see if we're hovering over a creature
         Ray camToWorld = camera.ScreenPointToRay(Input.mousePosition);
-        Debug.DrawRay(camToWorld.origin, camToWorld.direction * 100.0f, Color.red, 2.0f);
 
         if (!Physics.Raycast(camToWorld, out RaycastHit hit, float.PositiveInfinity, creatureMask)) {
             selectedCreature = null;

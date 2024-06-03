@@ -21,7 +21,7 @@ I've always wanted to make an ecosystem and watch creatures adapt and evolve. He
     - Creatures now move towards closest food when hungry
     - If a creature's approaching food and gets eaten, they'll find the next closest food
 
-0.2.0: Expanded creature biology
+0.1.1: Expanded creature biology
 - Health
     - Creature now dies when health is 0
     - Decreases when creature is starving
@@ -38,10 +38,16 @@ I've always wanted to make an ecosystem and watch creatures adapt and evolve. He
 - Reproduction
     - Maturity point created when creatures may reproduce
 
-0.3.0: Interface
+0.1.2: Basic interface
 - Camera
     - Can be panned and zoomed in
     - Follows selected creatures
 - Creature selection
-    - Shows health and food (for now)
+    - Shows health and food bars (for now)
+
+0.2.0: Interface + complex creature biologies
+- Biology overhaul
+    - Energy changes
+        - Energy is budgeted judiciously between base living cost, movement, and growth 
+- UI
     
