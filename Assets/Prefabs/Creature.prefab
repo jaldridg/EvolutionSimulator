@@ -100,17 +100,19 @@ MonoBehaviour:
   generation: 0
   stomachCapacity: 0
   food: 0
-  maxSpeed: 0
-  maxTurnSpeed: 0
+  starving: 0
+  concious: 0
   maxHealth: 0
   health: 0
-  energyLevel: 0
+  normalEnergyLevel: 0
+  currentEnergyLevel: 0
   mass: 0
-  oldAgePoint: 0
-  maturityPoint: 0
+  size: 0
+  baseEnergyExpense: 0
   age: 0
   offspringEnergyCost: 0
   offspringEnergySpent: 0
+  energyDeficiencyPoint: 0
 --- !u!114 &7036669163089722134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143,7 +145,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 1
-  m_BaseOffset: 0.5
+  m_BaseOffset: 0.4
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!1 &7749741233989405354

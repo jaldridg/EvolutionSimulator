@@ -13,47 +13,55 @@ public class Biology : MonoBehaviour
     [HideInInspector] public float stomachCapacity;
     public float food;
 
+    public bool hungry;
+    public bool starving;
+    public bool concious;
+    public bool healthy;
+    public bool mature;
 
     // The percent fullness of the stomach where creatures are well fed
     public static float WELL_FED_CONSTANT = 0.8f;
     // The percent fullness of the stomach where creatures will begin looking for food
     public static float HUNGER_CONSTANT = 0.5f;
+
     // The percent fullness of the stomach where creatures will have negative effects from hunger
     public static float STARVATION_CONSTANT = 0.25f;
+
 
     [HideInInspector] public float maxHealth;
     public float health;
 
-    // Comes from food, High energy is beneficial and low energy is detremental
-    public float energyLevel;
-
     [HideInInspector] public float normalEnergyLevel;
+
+    public float currentEnergyLevel;
 
     public float mass;
 
     public float size;
 
-    // The amount of energy a creature spends per second no matter what it's doing based on it's size
-    public float baseEnergyExpense;
+    public float maxSize;
 
-    // In seconds - the point that creature's start having negative health effects due to age
-    [HideInInspector] public float oldAgePoint;
-    [HideInInspector] public float maturityPoint;
+    // The amount of energy a creature spends per second no matter what it's doing based on it's size
+    [HideInInspector] public float baseEnergyExpense;
+
     public float age;
 
-    // The total energy the creature needs to spend to reproduce
-    public float offspringEnergyCost;
+    // The total energy the creature needs to spend to mature or reproduce
+    public float growthEnergyCost;
 
-    // The amount of energy expended to produce the next offspring
-    public float offspringEnergySpent;
+    // The amount of energy expended towards maturity or the next offspring
+    public float growthEnergySpent;
+
+    // The energy expenditure in which an offspring will be born
+    // Less energy to reproduce will result in premature offspring which may have difficulty surviving
+    public float offspringEnergyCutoff;
+
+    public int offspringCount;
 
 
     /* To implement
-        energy
-        regenerationRate
-        acceleration
+        acceleration?
         maxSize
-        size
     */
 
     // The ratio of base energy that can be spent to stay alive - anything under this ratio and the creature dies
@@ -65,8 +73,14 @@ public class Biology : MonoBehaviour
     // The energy cost of movement
     public const float MOVEMENT_CONSTANT = 0.2f;
 
-    // The energy ratio amount which will be maintained by sacrificing health
-    [HideInInspector] public float healthToEnergyDeficitPoint;
+    // The angular rotation speed multiplier compared to speed
+    public const float ROTATION_CONSTANT = 100.0f;
+
+    // The speed constant of food digestion
+    public const float DIGESTION_CONSTANT = 0.01f;
+
+    // The minimum energy which will be maintained by sacrificing health
+    [HideInInspector] public float energyDeficiencyPoint;
 
     private NavMeshAgent agent;
     private WorldManager world;
@@ -77,31 +91,21 @@ public class Biology : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         world = FindObjectOfType<WorldManager>();
 
-        // Body related
-        size = 1.0f;
-        mass = size * size * size;
-        baseEnergyExpense = size;
+        // Bodily constants
+        maxSize = 1.0f;
+        growthEnergyCost = maxSize * maxSize * maxSize * 30.0f;
+        offspringEnergyCutoff = growthEnergyCost / 2;
+        growthEnergySpent = offspringEnergyCutoff;
 
-        // Health related
-        maxHealth = mass * 100.0f;
+        // Set starting size based on bodily constants
+        updateSize();
+
+        // Starting stats
         health = maxHealth;
-
-        // Food related
-        stomachCapacity = mass * 100.0f;
         food = stomachCapacity * WELL_FED_CONSTANT;
-
-        // Energy related
-        normalEnergyLevel = size;
-        healthToEnergyDeficitPoint = normalEnergyLevel * 0.5f;
-
-        // Age related
-        oldAgePoint = 180.0f;
-        maturityPoint = oldAgePoint / 3.0f;
         age = 0.0f;
-
-        // Reproduction related
-        offspringEnergyCost = 25.0f;
-        offspringEnergySpent = 0.0f;
+        mature = false;
+        offspringCount = 0;
 
         gameObject.name = "Creature (Gen " + generation + ")";
 
@@ -113,53 +117,65 @@ public class Biology : MonoBehaviour
     {
         if (health < 0) { Die(); }
 
+        /*********** Determine body states **************/
+        hungry = (food / stomachCapacity) < HUNGER_CONSTANT;
+        healthy = health == maxHealth;
+
         // Assume worst for creature
         agent.speed = 0.0f;
         agent.angularSpeed = 0.0f;
 
         /*********** Budget energy based on the creature's necessities **************/
-        energyLevel = calculateEnergyLevel();
-        food -= energyLevel * Time.deltaTime;
+        currentEnergyLevel = generateEnergy();
+        float currentRemainingEnergy = currentEnergyLevel;
 
-        // If needed, maintain base energy levels by sacrificing the body (health) for energy
-        if (energyLevel < healthToEnergyDeficitPoint) {
-            health -= (healthToEnergyDeficitPoint - energyLevel) * Time.deltaTime;
-        }
-        float currentRemainingEnergy = energyLevel;
-
-        // Expend minimum required energy and use health if there's not enough
+        // Expend minimum required energy
         float minimumEnergyRequirement = baseEnergyExpense * BASE_ENERGY_DEATH_RATIO;
-        if (currentRemainingEnergy < minimumEnergyRequirement) {
-            health -= (minimumEnergyRequirement - currentRemainingEnergy) * Time.deltaTime;
-        }
         currentRemainingEnergy -= minimumEnergyRequirement;
 
         // Expend remaining energy on movement and growth
-        bool concious = currentRemainingEnergy > 0;
+        concious = currentRemainingEnergy > 0;
         if (concious) {
-            // Find a ratio between movement and growth based on creature's health
             // Priority is on creature's movement when injured and on growth when healthy
-            float movementVersusGrowthRatio = currentRemainingEnergy * WELL_FED_CONSTANT / normalEnergyLevel;
-            float growthEnergyBudget = currentRemainingEnergy - movementVersusGrowthRatio;
-            float movementEnergyBudget = currentRemainingEnergy - growthEnergyBudget;
+            if (starving) {
+                expendMovementEnergy(currentRemainingEnergy);
+            } else {
+                // Find a ratio between movement and growth based on creature's health
+                float movementVersusGrowthRatio = currentRemainingEnergy * WELL_FED_CONSTANT / normalEnergyLevel;
+                float growthEnergyBudget = currentRemainingEnergy * movementVersusGrowthRatio;
+                float movementEnergyBudget = currentRemainingEnergy - growthEnergyBudget;
 
-            expendGrowthEnergy(growthEnergyBudget);
-            expendMovementEnergy(movementEnergyBudget);
+                expendGrowthEnergy(growthEnergyBudget);
+                expendMovementEnergy(movementEnergyBudget);
+            }
         }
     }
 
+    // A less frequently ran update method
     IEnumerator IncreaseAge() {
         while (true) {
-            age++;
-            if (age > oldAgePoint) {
-                normalEnergyLevel *= 0.995f;
+            // Update body limits based on new size
+            if (!mature) {
+                updateSize();
             }
+            age++;
             yield return new WaitForSeconds(1);
         }
     }
 
     public void increaseGeneration(int gen) {
         generation = gen + 1;
+    }
+
+    public void setGrowthEnergySpent(float energy) {
+        growthEnergySpent = energy;
+    }
+
+    private void OnTriggerEnter(Collider collider) {
+        if (collider.gameObject.tag.Equals("Food")) {
+            Destroy(collider.gameObject);
+            Eat();
+        }
     }
 
     public void Eat() {
@@ -170,28 +186,48 @@ public class Biology : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private float calculateEnergyLevel() {
-        // Set energy level
+    private void updateSize() {
+        size = growthEnergySpent / growthEnergyCost * maxSize;
+        mass = size * size * size;
+
+        normalEnergyLevel = size;   
+        baseEnergyExpense = size / 3;
+        energyDeficiencyPoint = normalEnergyLevel * 0.5f;             
+        maxHealth = mass * 20.0f;
+        stomachCapacity = mass * 50.0f;
+
+        transform.localScale = new Vector3(size, size, size);
+    }
+
+    // Uses food or health to generate creature energy
+    private float generateEnergy() {
         // Well fed buff
-        float eLevel;
+        food = Math.Max(food - stomachCapacity * DIGESTION_CONSTANT * Time.deltaTime, 0);
+        float energyLevel;
         if (food > stomachCapacity * WELL_FED_CONSTANT) {
             // Lerp between full energy and a little bonus energy when full
-            eLevel = normalEnergyLevel * (food / (stomachCapacity * WELL_FED_CONSTANT));
+            energyLevel = normalEnergyLevel * (food / (stomachCapacity * WELL_FED_CONSTANT));
 
         // Starvation penalty
         } else if (food < stomachCapacity * STARVATION_CONSTANT) {
             // Lerps between full and no energy when starving
             // TODO: Go back to 50% minimum energy
-            eLevel = normalEnergyLevel * (food / (stomachCapacity * STARVATION_CONSTANT));
+            energyLevel = normalEnergyLevel * (food / (stomachCapacity * STARVATION_CONSTANT));
 
         // Normal enery levels
         } else {
-            eLevel = normalEnergyLevel;
+            energyLevel = normalEnergyLevel;
         }
 
-        // Health also affects energy
-        eLevel *= health / maxHealth;
-        return eLevel;
+        starving = energyLevel < energyDeficiencyPoint;
+        // If needed, maintain base energy levels by sacrificing the body (health) for energy
+        if (starving) {
+            float healthEnergy = energyDeficiencyPoint - energyLevel;
+            health -= healthEnergy * Time.deltaTime;
+            energyLevel += healthEnergy;
+        }
+
+        return energyLevel;
     }
 
     // Regenerates, matures, or reproduces given an amoutn of energy
@@ -211,18 +247,30 @@ public class Biology : MonoBehaviour
     // Put energy towards maturing or reproducing
     private void expendDevelopmentEnergy(float energyBudget) {
         // Reproduce if enough energy has been put into it
-        offspringEnergySpent += energyBudget * Time.deltaTime;
-        if (offspringEnergySpent >= offspringEnergyCost) {
-            GameObject offspring = Instantiate(world.creature, transform.position, Quaternion.identity);
-            offspring.GetComponent<Biology>().increaseGeneration(generation);
-            offspringEnergySpent = 0.0f;
+        growthEnergySpent += energyBudget * Time.deltaTime;
+        if (mature) {
+            if (growthEnergySpent >= offspringEnergyCutoff) {
+                GameObject offspring = Instantiate(world.creature, transform.position, Quaternion.identity);
+                Biology offspringBio = offspring.GetComponent<Biology>();
+                offspringBio.increaseGeneration(generation);
+                offspringBio.setGrowthEnergySpent(offspringEnergyCutoff);
+                //growthEnergySpent = 0.0f;
+                offspringCount++;
+            }
+        } else {
+            if (growthEnergySpent > growthEnergyCost) {
+                mature = true;
+                growthEnergySpent = 0.0f;
+            }
         }
     }
 
     // Calculates how fast the creature can move to exactly expend the energy budget
     private void expendMovementEnergy(float energyBudget) {
         // Solve for speed given formula: movementEnergy = mass * speed * speed * MOVEMENT_CONSTANT;
-        agent.speed = (float) Math.Sqrt(energyBudget / (mass * MOVEMENT_CONSTANT));
-        agent.angularSpeed = agent.speed * 50.0f;
+        float baseSpeed = (float) Math.Sqrt(energyBudget / (mass * MOVEMENT_CONSTANT));
+        float injuryMultiplier = health / maxHealth;
+        agent.speed = baseSpeed * injuryMultiplier;
+        agent.angularSpeed = baseSpeed * ROTATION_CONSTANT * injuryMultiplier;
     }
 }

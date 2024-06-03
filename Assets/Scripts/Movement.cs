@@ -29,9 +29,7 @@ public class Movement : MonoBehaviour
             // Flag waypoint as invalid so it can be set
             Vector3 waypoint = Vector3.zero;
             // Look for food if hungry or injured
-            bool hungry = body.food < body.stomachCapacity / 2;
-            bool healthy = body.health == body.maxHealth;
-            if (hungry || !healthy) {
+            if (body.hungry || !body.healthy) {
                 GameObject closestFood = FindClosestFood();
                 waypoint = closestFood == null ? Vector3.zero : closestFood.transform.position;
             }
@@ -66,12 +64,5 @@ public class Movement : MonoBehaviour
             }
         }
         return closestFood;
-    }
-
-    private void OnTriggerEnter(Collider collider) {
-        if (collider.gameObject.tag.Equals("Food")) {
-            Destroy(collider.gameObject);
-            body.Eat();
-        }
     }
 }

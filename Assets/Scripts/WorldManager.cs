@@ -17,7 +17,7 @@ public class WorldManager : MonoBehaviour
     public const float FOOD_RATE = 1.0f;
 
     // How much food satisfies a creature's need to eat
-    public const float FOOD_NUTRITION = 80.0f;
+    public const float FOOD_NUTRITION = 30.0f;
     
     // Note: planeScale is not tied to ingame size
     private static float planeScale;
