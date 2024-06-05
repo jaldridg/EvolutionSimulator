@@ -49,5 +49,12 @@ I've always wanted to make an ecosystem and watch creatures adapt and evolve. He
 - Biology overhaul
     - Energy changes
         - Energy is budgeted judiciously between base living cost, movement, and growth 
+    - Movement
+        - Max speed is calculated given the creatures energy
+        - Base energy cost for moving a certain distance balances high speed/low mass creatures
 - UI
+- Creatures
+    - Creatures now must spend energy maturing before spending the energy to reproduce
+    - Creature size changes based on how much energy has been spent maturing
+    - Creatures stats such as maximum health, stomach capacity, and more are affected by size
     

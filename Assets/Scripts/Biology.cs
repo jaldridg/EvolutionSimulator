@@ -70,8 +70,12 @@ public class Biology : MonoBehaviour
     // Higher numbers are faster
     public const float REGENERATION_CONSTANT = 0.1f;
 
-    // The energy cost of movement
+    // The energy cost of movement which is multiplied with speed
     public const float MOVEMENT_CONSTANT = 0.2f;
+
+    // A flat energy cost of movement based on distance travelled
+    // Prevents small and super fast creatures from evolving
+    public const float FRICTION_CONSTANT = 0.025f;
 
     // The angular rotation speed multiplier compared to speed
     public const float ROTATION_CONSTANT = 100.0f;
@@ -158,8 +162,8 @@ public class Biology : MonoBehaviour
             if (!mature) {
                 updateSize();
             }
-            age++;
-            yield return new WaitForSeconds(1);
+            age += 0.1f;
+            yield return new WaitForSeconds(0.1f);
         }
     }
 
@@ -192,8 +196,11 @@ public class Biology : MonoBehaviour
 
         normalEnergyLevel = size;   
         baseEnergyExpense = size / 3;
-        energyDeficiencyPoint = normalEnergyLevel * 0.5f;             
+        energyDeficiencyPoint = normalEnergyLevel * 0.5f;
+        float originalMaxHealth = maxHealth;          
         maxHealth = mass * 20.0f;
+        // Keep health percent constant
+        health *= maxHealth / originalMaxHealth;
         stomachCapacity = mass * 50.0f;
 
         transform.localScale = new Vector3(size, size, size);
@@ -254,7 +261,7 @@ public class Biology : MonoBehaviour
                 Biology offspringBio = offspring.GetComponent<Biology>();
                 offspringBio.increaseGeneration(generation);
                 offspringBio.setGrowthEnergySpent(offspringEnergyCutoff);
-                //growthEnergySpent = 0.0f;
+                growthEnergySpent = 0.0f;
                 offspringCount++;
             }
         } else {
@@ -267,8 +274,10 @@ public class Biology : MonoBehaviour
 
     // Calculates how fast the creature can move to exactly expend the energy budget
     private void expendMovementEnergy(float energyBudget) {
-        // Solve for speed given formula: movementEnergy = mass * speed * speed * MOVEMENT_CONSTANT;
-        float baseSpeed = (float) Math.Sqrt(energyBudget / (mass * MOVEMENT_CONSTANT));
+        // Solve for speed given formula: movementEnergy = mass * speed * speed * MOVEMENT_CONSTANT + speed * FRICTION_CONSTANT;
+        // Using quadratic formula
+        float determinant = (float) Math.Sqrt(FRICTION_CONSTANT * FRICTION_CONSTANT + 4 * mass * MOVEMENT_CONSTANT * energyBudget);
+        float baseSpeed = (-FRICTION_CONSTANT + determinant) / (2 * mass * MOVEMENT_CONSTANT);
         float injuryMultiplier = health / maxHealth;
         agent.speed = baseSpeed * injuryMultiplier;
         agent.angularSpeed = baseSpeed * ROTATION_CONSTANT * injuryMultiplier;
