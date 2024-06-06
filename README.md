@@ -52,9 +52,13 @@ I've always wanted to make an ecosystem and watch creatures adapt and evolve. He
     - Movement
         - Max speed is calculated given the creatures energy
         - Base energy cost for moving a certain distance balances high speed/low mass creatures
+    - Maturity
+        - Creatures now must spend energy maturing before spending the energy to reproduce
+        - Creature size changes based on how much energy has been spent maturing
+    - Size
+        - Creatures stats such as maximum health, stomach capacity, and more are affected by their size
 - UI
-- Creatures
-    - Creatures now must spend energy maturing before spending the energy to reproduce
-    - Creature size changes based on how much energy has been spent maturing
-    - Creatures stats such as maximum health, stomach capacity, and more are affected by size
+    - Creature color darkens as they age
+    - States added to health (Healthy, injured, dying) and food (Well fed, nourished, hungry, starving)
+    - Percent changes displayed for health and food
     

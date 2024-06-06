@@ -8,17 +8,17 @@ using UnityEngine.AI;
 // Defines the creature's needs and how they affect the creature
 public class Biology : MonoBehaviour
 {
-    [SerializeField] private int generation;
-
-    [HideInInspector] public float stomachCapacity;
-    public float food;
-
+    /*** Creature states ***/
     public bool hungry;
     public bool starving;
     public bool concious;
     public bool healthy;
     public bool mature;
 
+
+    /*** Biological constants used for balancing ***/
+    // The speed constant of food digestion
+    public static float DIGESTION_CONSTANT = 0.01f;
     // The percent fullness of the stomach where creatures are well fed
     public static float WELL_FED_CONSTANT = 0.8f;
     // The percent fullness of the stomach where creatures will begin looking for food
@@ -27,77 +27,81 @@ public class Biology : MonoBehaviour
     // The percent fullness of the stomach where creatures will have negative effects from hunger
     public static float STARVATION_CONSTANT = 0.25f;
 
+    // The ratio of base energy that can be spent to stay alive - anything under this ratio and the creature dies
+    public static float BASE_ENERGY_DEATH_RATIO = 0.3f;
 
+    // The energy cost of movement which is multiplied with speed
+    public static float MOVEMENT_CONSTANT = 0.2f;
+    // A flat energy cost of movement based on distance travelled
+    // Prevents small and super fast creatures from evolving
+    public static float FRICTION_CONSTANT = 0.025f;
+    // The angular rotation speed multiplier compared to speed
+    public static float ROTATION_CONSTANT = 100.0f;
+
+    public static Color MATURE_BODY_COLOR = new Color (0.02f, 0.71f, 0.86f);
+
+
+    /*** Creature variables ***/
     [HideInInspector] public float maxHealth;
     public float health;
 
+    [HideInInspector] public float stomachCapacity;
+    public float food;
+
     [HideInInspector] public float normalEnergyLevel;
-
     public float currentEnergyLevel;
-
-    public float mass;
-
-    public float size;
-
-    public float maxSize;
-
     // The amount of energy a creature spends per second no matter what it's doing based on it's size
     [HideInInspector] public float baseEnergyExpense;
 
-    public float age;
+    public float mass;
+    public float size;
+
 
     // The total energy the creature needs to spend to mature or reproduce
     public float growthEnergyCost;
-
     // The amount of energy expended towards maturity or the next offspring
     public float growthEnergySpent;
+    public int offspringCount;
+
+    [SerializeField] private int generation;
+    public float age;
+    // The time spent since maturing
+    public float timeMature;
+
+
+    /*** Mutable traits which change each offspring to evolve ***/
+    // The minimum energy which will be maintained by sacrificing health
+    [HideInInspector] public float energyDeficiencyPoint;
 
     // The energy expenditure in which an offspring will be born
     // Less energy to reproduce will result in premature offspring which may have difficulty surviving
     public float offspringEnergyCutoff;
 
-    public int offspringCount;
+    public float maxSize;
 
 
-    /* To implement
-        acceleration?
-        maxSize
-    */
+    /*** UI variables ***/
+    // Health change per second
+    [HideInInspector] public float healthDelta;
+    [HideInInspector] public float foodDelta;
 
-    // The ratio of base energy that can be spent to stay alive - anything under this ratio and the creature dies
-    public const float BASE_ENERGY_DEATH_RATIO = 0.3f;
 
-    // Higher numbers are faster
-    public const float REGENERATION_CONSTANT = 0.1f;
-
-    // The energy cost of movement which is multiplied with speed
-    public const float MOVEMENT_CONSTANT = 0.2f;
-
-    // A flat energy cost of movement based on distance travelled
-    // Prevents small and super fast creatures from evolving
-    public const float FRICTION_CONSTANT = 0.025f;
-
-    // The angular rotation speed multiplier compared to speed
-    public const float ROTATION_CONSTANT = 100.0f;
-
-    // The speed constant of food digestion
-    public const float DIGESTION_CONSTANT = 0.01f;
-
-    // The minimum energy which will be maintained by sacrificing health
-    [HideInInspector] public float energyDeficiencyPoint;
-
+    /*** Unity components ***/
     private NavMeshAgent agent;
     private WorldManager world;
+
+    private Material bodyMaterial;
 
     // Start is called before the first frame update
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         world = FindObjectOfType<WorldManager>();
+        bodyMaterial = transform.GetChild(0).GetComponent<Renderer>().material;
 
         // Bodily constants
         maxSize = 1.0f;
-        growthEnergyCost = maxSize * maxSize * maxSize * 30.0f;
+        growthEnergyCost = maxSize * maxSize * maxSize * 50.0f;
         offspringEnergyCutoff = growthEnergyCost / 2;
         growthEnergySpent = offspringEnergyCutoff;
 
@@ -120,6 +124,9 @@ public class Biology : MonoBehaviour
     void Update()
     {
         if (health < 0) { Die(); }
+
+        healthDelta = 0;
+        foodDelta = 0;
 
         /*********** Determine body states **************/
         hungry = (food / stomachCapacity) < HUNGER_CONSTANT;
@@ -161,6 +168,11 @@ public class Biology : MonoBehaviour
             // Update body limits based on new size
             if (!mature) {
                 updateSize();
+                bodyMaterial.color = Color.Lerp(Color.white, MATURE_BODY_COLOR, growthEnergySpent / growthEnergyCost);
+            } else {
+                timeMature += 0.1f;
+                float colorDarkening = timeMature / 1000.0f;
+                bodyMaterial.color = MATURE_BODY_COLOR - new Color(0.0f, colorDarkening, colorDarkening);
             }
             age += 0.1f;
             yield return new WaitForSeconds(0.1f);
@@ -197,11 +209,11 @@ public class Biology : MonoBehaviour
         normalEnergyLevel = size;   
         baseEnergyExpense = size / 3;
         energyDeficiencyPoint = normalEnergyLevel * 0.5f;
-        float originalMaxHealth = maxHealth;          
+        float originalMaxHealth = maxHealth;
         maxHealth = mass * 20.0f;
         // Keep health percent constant
         health *= maxHealth / originalMaxHealth;
-        stomachCapacity = mass * 50.0f;
+        stomachCapacity = mass * 75.0f;
 
         transform.localScale = new Vector3(size, size, size);
     }
@@ -210,6 +222,7 @@ public class Biology : MonoBehaviour
     private float generateEnergy() {
         // Well fed buff
         food = Math.Max(food - stomachCapacity * DIGESTION_CONSTANT * Time.deltaTime, 0);
+        foodDelta -= stomachCapacity * DIGESTION_CONSTANT;
         float energyLevel;
         if (food > stomachCapacity * WELL_FED_CONSTANT) {
             // Lerp between full energy and a little bonus energy when full
@@ -231,6 +244,7 @@ public class Biology : MonoBehaviour
         if (starving) {
             float healthEnergy = energyDeficiencyPoint - energyLevel;
             health -= healthEnergy * Time.deltaTime;
+            healthDelta -= healthEnergy;
             energyLevel += healthEnergy;
         }
 
@@ -241,10 +255,11 @@ public class Biology : MonoBehaviour
     private void expendGrowthEnergy(float energyBudget) {
         // For now split energy equally
         if (health < maxHealth) {
-            float regenerationBudget = energyBudget / 2;
             float developmentBudget = energyBudget / 2;
+            float regenerationBudget = energyBudget / 2;
 
             health += developmentBudget * Time.deltaTime;
+            healthDelta += developmentBudget;
             expendDevelopmentEnergy(regenerationBudget);
         } else {
             expendDevelopmentEnergy(energyBudget);
