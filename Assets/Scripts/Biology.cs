@@ -63,7 +63,7 @@ public class Biology : MonoBehaviour
     public float growthEnergySpent;
     public int offspringCount;
 
-    [SerializeField] private int generation;
+    public int generation;
     public float age;
     // The time spent since maturing
     public float timeMature;
