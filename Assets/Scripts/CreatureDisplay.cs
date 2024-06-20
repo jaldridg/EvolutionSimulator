@@ -106,15 +106,17 @@ public class CreatureDisplay : MonoBehaviour
         // Show maturation or reproduction progress
         if (bio.mature) {
             growthStateText.text = "REPRODUCING...";
-            growthSlider.value = bio.growthEnergySpent / bio.offspringEnergyCutoff;
+            float offspringMass = bio.growthEnergySpent / bio.bodySizeEnergyCost;
+            growthSlider.value = offspringMass / (bio.maxMass * bio.offspringMassRatio);
         } else {
             growthStateText.text = "MATURING...";
             growthSlider.value = bio.growthEnergySpent / bio.growthEnergyCost;
         }
 
         childrenText.text = "Children: " + bio.offspringCount;
-        generationText.text = "Generation " + bio.generation;
-        massText.text = "Mass: " + bio.mass;
-        sizeText.text = "Size: " + bio.size;
+        generationText.text = "Generation: " + bio.generation;
+        ageText.text = "Age: " + (int) bio.age;
+        massText.text = "Mass: " + String.Format("{0:0.00}", bio.mass);
+        sizeText.text = "Size: " + String.Format("{0:0.00}", bio.size);
     }
 }
