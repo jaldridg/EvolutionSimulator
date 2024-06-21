@@ -5,18 +5,19 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
+// The brain of the creature
 public class Movement : MonoBehaviour
 {
     public NavMeshSurface navMesh;
 
-    private Biology body;
+    private Biology bio;
     private NavMeshAgent agent;
 
     // Start is called before the first frame update
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        body = GetComponent<Biology>();
+        bio = GetComponent<Biology>();
         StartCoroutine(SetWaypoint());
     }
 
@@ -29,7 +30,7 @@ public class Movement : MonoBehaviour
             // Flag waypoint as invalid so it can be set
             Vector3 waypoint = Vector3.zero;
             // Look for food if hungry or injured
-            if (body.hungry || !body.healthy) {
+            if (bio.hungry || !bio.healthy) {
                 GameObject closestFood = FindClosestFood();
                 waypoint = closestFood == null ? Vector3.zero : closestFood.transform.position;
             }
@@ -48,19 +49,20 @@ public class Movement : MonoBehaviour
         }
     }
 
+    // Finds the closest visible food or null if none exists
     private GameObject FindClosestFood() {
         GameObject[] food = GameObject.FindGameObjectsWithTag("Food");
-        if (food.Length == 0) {
-            return null;
-        }
 
         float bestDistance = float.PositiveInfinity;
         GameObject closestFood = null;
+        float sightDistance = bio.bodySpaceBrainWeight * Biology.VISION_CONSTANT;
         for (int i = 0; i < food.Length - 1; i++) {
             float testDistance = Vector3.Distance(food[i].transform.position, transform.position);
             if (testDistance < bestDistance) {
-                bestDistance = testDistance;
-                closestFood = food[i];
+                if (testDistance < sightDistance) {
+                    bestDistance = testDistance;
+                    closestFood = food[i];
+                }
             }
         }
         return closestFood;

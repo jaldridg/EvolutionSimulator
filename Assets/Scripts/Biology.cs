@@ -30,13 +30,18 @@ public class Biology : MonoBehaviour
     // The ratio of base energy that can be spent to stay alive - anything under this ratio and the creature dies
     public static float BASE_ENERGY_DEATH_RATIO = 0.5f;
 
+    // The multiplier for vision distance given brain size
+    public static float VISION_CONSTANT = 0.5f;
+
     // The energy cost of movement which is multiplied with speed
     public static float MOVEMENT_CONSTANT = 0.15f;
-    // A flat energy cost of movement based on distance travelled
-    // Prevents small and super fast creatures from evolving
-    public static float FRICTION_CONSTANT = 0.025f;
+
     // The angular rotation speed multiplier compared to speed
     public static float ROTATION_CONSTANT = 100.0f;
+
+    // Determines the sum of health, stomach, and brain
+    // In other words BSPB = maxHealth + stomachCapacity + brainSize;
+    public static float BODY_SPACE_PACKING_BUDGET = 100.0f;
 
     public static Color MATURE_BODY_COLOR = new Color (0.02f, 0.71f, 0.86f);
 
@@ -53,6 +58,8 @@ public class Biology : MonoBehaviour
 
     public float mass;
     public float size;
+
+    public float brainSize;
 
 
     // The total energy the creature needs to spend to mature or reproduce
@@ -71,8 +78,8 @@ public class Biology : MonoBehaviour
 
 
     /*** Mutable traits which change each offspring to evolve ***/
-    // The minimum energy which will be maintained by sacrificing health
-    [HideInInspector] public float energyDeficiencyPoint;
+    // The minimum energy ratio which is maintained by sacrificing health
+    [HideInInspector] public float energyDeficiencyRatio;
     // The ratio of energy a creature must spend per second no matter what it's doing based on its size
     // This determines how much energy is put into sensing the environment and intelligent behavior
     [HideInInspector] public float baseEnergyRatio;
@@ -81,8 +88,19 @@ public class Biology : MonoBehaviour
     // Less mass will result in premature offspring which may have difficulty surviving
     public float offspringMassRatio;
 
+    // The weight of spending energy on reproducing as opposed to regeneration
+    // 1.0 fully prioritizes reproducing while 0.0 prioritizes regeneration
+    public float offspringToRegenerationWeight;
+
     // The energy cost of growing a cubic unit of creature
     public float bodySizeEnergyCost;
+
+    // These three variables determine the ratio of the body used for certain functions
+    // Higher weight in a category means the creature can store more food, see better, or has more health
+    // Since these are normalized, strength in one trait means weakness in the others
+    public float bodySpaceStomachWeight;
+    public float bodySpaceBrainWeight;
+    public float bodySpaceHealthWeight;
 
     public float maxSize;
 
@@ -92,6 +110,7 @@ public class Biology : MonoBehaviour
     /*** UI variables ***/
     // Health change per second
     [HideInInspector] public float healthDelta;
+    // Food level change per second
     [HideInInspector] public float foodDelta;
 
 
@@ -109,9 +128,15 @@ public class Biology : MonoBehaviour
         bodyMaterial = transform.GetChild(0).GetComponent<Renderer>().material;
 
         // Bodily constants
-        maxSize = Evolution.STARTING_CREATURE_MAX_SIZE;
-        bodySizeEnergyCost = Evolution.STARTING_CREATURE_BODY_SIZE_ENERGY_COST;
-        offspringMassRatio = Evolution.STARTING_CREATURE_OFFSPRING_MASS_RATIO;
+        maxSize = Evolution.STARTING_MAX_SIZE;
+        bodySizeEnergyCost = Evolution.STARTING_BODY_SIZE_ENERGY_COST;
+        energyDeficiencyRatio = Evolution.STARTING_ENERGY_DEFICIENCY_RATIO;
+        offspringMassRatio = Evolution.STARTING_OFFSPRING_MASS_RATIO;
+        offspringToRegenerationWeight = Evolution.STARTING_OFFSPRING_TO_REGENERATION_WEIGHT;
+        bodySpaceStomachWeight = Evolution.STARTING_BODY_SPACE_STOMACH_WEIGHT;
+        bodySpaceBrainWeight = Evolution.STARTING_BODY_SPACE_BRAIN_WEIGHT;
+        bodySpaceHealthWeight = Evolution.STARTING_BODY_SPACE_HEALTH_WEIGHT;
+        baseEnergyRatio = bodySpaceBrainWeight / BODY_SPACE_PACKING_BUDGET;
         maxMass = maxSize * maxSize * maxSize;
         growthEnergyCost = maxMass * bodySizeEnergyCost;
         growthEnergySpent = offspringMassRatio * growthEnergyCost;
@@ -218,12 +243,11 @@ public class Biology : MonoBehaviour
         size = (float) Math.Pow(mass, 1.0f/3.0f);
 
         normalEnergyLevel = size;   
-        energyDeficiencyPoint = normalEnergyLevel * 0.5f;
         float originalMaxHealth = maxHealth;
-        maxHealth = mass * 20.0f;
+        maxHealth = mass * bodySpaceHealthWeight;
         // Keep health percent constant
         health *= maxHealth / originalMaxHealth;
-        stomachCapacity = mass * 75.0f;
+        stomachCapacity = mass * bodySpaceStomachWeight;
 
         transform.localScale = new Vector3(size, size, size);
     }
@@ -249,13 +273,13 @@ public class Biology : MonoBehaviour
             energyLevel = normalEnergyLevel;
         }
 
-        starving = energyLevel < energyDeficiencyPoint;
+        starving = energyLevel / normalEnergyLevel < energyDeficiencyRatio;
         // If needed, maintain base energy levels by sacrificing the body (health) for energy
         if (starving) {
-            float healthEnergy = energyDeficiencyPoint - energyLevel;
-            health -= healthEnergy * Time.deltaTime;
-            healthDelta -= healthEnergy;
-            energyLevel += healthEnergy;
+            float energyDeficit = energyDeficiencyRatio * normalEnergyLevel - energyLevel;
+            health -= energyDeficit * Time.deltaTime;
+            healthDelta -= energyDeficit;
+            energyLevel += energyDeficit;
         }
 
         return energyLevel;
@@ -265,12 +289,12 @@ public class Biology : MonoBehaviour
     private void expendGrowthEnergy(float energyBudget) {
         // For now split energy equally
         if (health < maxHealth) {
-            float developmentBudget = energyBudget / 2;
-            float regenerationBudget = energyBudget / 2;
+            float offspringBudget = energyBudget  * offspringToRegenerationWeight;
+            float regenerationBudget = energyBudget * (1 - offspringToRegenerationWeight);
 
-            health += developmentBudget * Time.deltaTime;
-            healthDelta += developmentBudget;
-            expendDevelopmentEnergy(regenerationBudget);
+            health += regenerationBudget * Time.deltaTime;
+            healthDelta += regenerationBudget;
+            expendDevelopmentEnergy(offspringBudget);
         } else {
             expendDevelopmentEnergy(energyBudget);
         }
@@ -295,7 +319,7 @@ public class Biology : MonoBehaviour
             if (growthEnergySpent > growthEnergyCost) {
                 // Make sure max variables are set - they can get off from rounding errors
                 size = maxSize;
-                mass = size * size * size;
+                mass = maxMass;
                 mature = true;
                 growthEnergySpent = 0.0f;
             }
@@ -306,8 +330,9 @@ public class Biology : MonoBehaviour
     private void expendMovementEnergy(float energyBudget) {
         // Solve for speed given formula: movementEnergy = mass * speed * speed * MOVEMENT_CONSTANT + speed * FRICTION_CONSTANT;
         // Using quadratic formula
-        float determinant = (float) Math.Sqrt(FRICTION_CONSTANT * FRICTION_CONSTANT + 4 * mass * MOVEMENT_CONSTANT * energyBudget);
-        float baseSpeed = (-FRICTION_CONSTANT + determinant) / (2 * mass * MOVEMENT_CONSTANT);
+        float fc = WorldManager.FRICTION_CONSTANT;
+        float determinant = (float) Math.Sqrt(fc * fc + 4 * mass * MOVEMENT_CONSTANT * energyBudget);
+        float baseSpeed = (-fc + determinant) / (2 * mass * MOVEMENT_CONSTANT);
         float injuryMultiplier = health / maxHealth;
         agent.speed = baseSpeed * injuryMultiplier;
         agent.angularSpeed = baseSpeed * ROTATION_CONSTANT * injuryMultiplier;

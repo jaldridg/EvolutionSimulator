@@ -54,11 +54,17 @@ I've always wanted to make an ecosystem and watch creatures adapt and evolve. He
         - Base energy cost for moving a certain distance balances high speed/low mass creatures
     - Maturity
         - Creatures now must spend energy maturing before spending the energy to reproduce
-        - Creature size changes based on how much energy has been spent maturing
+        - Creature mass changes based on how much energy has been spent maturing
     - Size
         - Creatures stats such as maximum health, stomach capacity, and more are affected by their size
+    - Body space
+        - Creatures functionality is allocated as space in its body
+        - The more weight in a trait, the better a creature performs (at the cost of other traits)
+    - Lots of new variables added which will later change from creature to creature via evolution
 - UI
     - Creature color darkens as they age
     - States added to health (Healthy, injured, dying) and food (Well fed, nourished, hungry, starving)
     - Percent changes displayed for health and food
+    - Growth bar shows maturity or offspring progress based on creature's maturity
+    - Lots of stats
     
