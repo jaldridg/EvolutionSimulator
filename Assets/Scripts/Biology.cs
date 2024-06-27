@@ -6,15 +6,9 @@ using UnityEngine;
 using UnityEngine.AI;
 
 // Defines the creature's needs and how they affect the creature
+[System.Serializable]
 public class Biology : MonoBehaviour
 {
-    /*** Creature states ***/
-    public bool hungry;
-    public bool starving;
-    public bool concious;
-    public bool healthy;
-    public bool mature;
-
 
     /*** Biological constants used for balancing ***/
     // The speed constant of food digestion
@@ -43,15 +37,29 @@ public class Biology : MonoBehaviour
     // In other words BSPB = maxHealth + stomachCapacity + brainSize;
     public static float BODY_SPACE_PACKING_BUDGET = 100.0f;
 
+    // The energy cost of growing a cubic unit of creature
+    public static float BODY_SIZE_ENERGY_COST = 100.0f;
+
     public static Color MATURE_BODY_COLOR = new Color (0.02f, 0.71f, 0.86f);
+    
+
+    /*** Creature states ***/
+    [Header("General Stats")]
+    public bool concious;
+    public bool healthy;
+    public bool hungry;
+    public bool starving;
+    public bool mature;
 
 
     /*** Creature variables ***/
-    [HideInInspector] public float maxHealth;
+    [Space(10)]
+    [Header("Detailed Stats")]
     public float health;
+    [HideInInspector] public float maxHealth;
 
-    [HideInInspector] public float stomachCapacity;
     public float food;
+    [HideInInspector] public float stomachCapacity;
 
     [HideInInspector] public float normalEnergyLevel;
     public float currentEnergyLevel;
@@ -59,31 +67,24 @@ public class Biology : MonoBehaviour
     public float mass;
     public float size;
 
-    public float brainSize;
-
-
     // The total energy the creature needs to spend to mature or reproduce
     public float growthEnergyCost;
     // The amount of energy expended towards maturity or the next offspring
     public float growthEnergySpent;
 
     // The size of the offspring in the creature's body
-    public float offspringMass;
     public int offspringCount;
 
     public int generation;
     public float age;
     // The time spent since maturing
-    public float timeMature;
+    private float timeMature;
 
 
     /*** Mutable traits which change each offspring to evolve ***/
     // The minimum energy ratio which is maintained by sacrificing health
-    [HideInInspector] public float energyDeficiencyRatio;
-    // The ratio of energy a creature must spend per second no matter what it's doing based on its size
-    // This determines how much energy is put into sensing the environment and intelligent behavior
-    [HideInInspector] public float baseEnergyRatio;
-
+    [Space(10)]
+    [Header("Genes")]
     // The mass / maxMass ratio at which a creature will be born
     // Less mass will result in premature offspring which may have difficulty surviving
     public float offspringMassRatio;
@@ -91,9 +92,8 @@ public class Biology : MonoBehaviour
     // The weight of spending energy on reproducing as opposed to regeneration
     // 1.0 fully prioritizes reproducing while 0.0 prioritizes regeneration
     public float offspringToRegenerationWeight;
-
-    // The energy cost of growing a cubic unit of creature
-    public float bodySizeEnergyCost;
+    // The energy ratio which will be maintained by sacrificing health
+    [HideInInspector] public float energyDeficiencyRatio;
 
     // These three variables determine the ratio of the body used for certain functions
     // Higher weight in a category means the creature can store more food, see better, or has more health
@@ -113,6 +113,11 @@ public class Biology : MonoBehaviour
     // Food level change per second
     [HideInInspector] public float foodDelta;
 
+    [HideInInspector] public float speed;
+
+    [HideInInspector] public float growthEnergyBudget;
+    [HideInInspector] public float movementEnergyBudget;
+
 
     /*** Unity components ***/
     private NavMeshAgent agent;
@@ -129,16 +134,15 @@ public class Biology : MonoBehaviour
 
         // Bodily constants
         maxSize = Evolution.STARTING_MAX_SIZE;
-        bodySizeEnergyCost = Evolution.STARTING_BODY_SIZE_ENERGY_COST;
         energyDeficiencyRatio = Evolution.STARTING_ENERGY_DEFICIENCY_RATIO;
         offspringMassRatio = Evolution.STARTING_OFFSPRING_MASS_RATIO;
         offspringToRegenerationWeight = Evolution.STARTING_OFFSPRING_TO_REGENERATION_WEIGHT;
         bodySpaceStomachWeight = Evolution.STARTING_BODY_SPACE_STOMACH_WEIGHT;
         bodySpaceBrainWeight = Evolution.STARTING_BODY_SPACE_BRAIN_WEIGHT;
         bodySpaceHealthWeight = Evolution.STARTING_BODY_SPACE_HEALTH_WEIGHT;
-        baseEnergyRatio = bodySpaceBrainWeight / BODY_SPACE_PACKING_BUDGET;
+
         maxMass = maxSize * maxSize * maxSize;
-        growthEnergyCost = maxMass * bodySizeEnergyCost;
+        growthEnergyCost = maxMass * BODY_SIZE_ENERGY_COST;
         growthEnergySpent = offspringMassRatio * growthEnergyCost;
 
         // Set starting size based on bodily constants
@@ -177,6 +181,7 @@ public class Biology : MonoBehaviour
         float currentRemainingEnergy = currentEnergyLevel;
 
         // Expend minimum required energy
+        float baseEnergyRatio = bodySpaceBrainWeight / BODY_SPACE_PACKING_BUDGET;
         float minimumEnergyRequirement = normalEnergyLevel * baseEnergyRatio;
         currentRemainingEnergy -= minimumEnergyRequirement;
 
@@ -189,8 +194,8 @@ public class Biology : MonoBehaviour
             } else {
                 // Find a ratio between movement and growth based on creature's health
                 float movementVersusGrowthRatio = currentRemainingEnergy * WELL_FED_CONSTANT / normalEnergyLevel;
-                float growthEnergyBudget = currentRemainingEnergy * movementVersusGrowthRatio;
-                float movementEnergyBudget = currentRemainingEnergy - growthEnergyBudget;
+                growthEnergyBudget = currentRemainingEnergy * movementVersusGrowthRatio;
+                movementEnergyBudget = currentRemainingEnergy - growthEnergyBudget;
 
                 expendGrowthEnergy(growthEnergyBudget);
                 expendMovementEnergy(movementEnergyBudget);
@@ -306,7 +311,7 @@ public class Biology : MonoBehaviour
         growthEnergySpent += energyBudget * Time.deltaTime;
         if (mature) {
             // Determine the mass of the offspring given the energy spent on it
-            float offspringMass = growthEnergySpent / bodySizeEnergyCost;
+            float offspringMass = growthEnergySpent / BODY_SIZE_ENERGY_COST;
             if (offspringMass >= maxMass * offspringMassRatio) {
                 GameObject offspring = Instantiate(world.creature, transform.position, Quaternion.identity);
                 Biology offspringBio = offspring.GetComponent<Biology>();
@@ -320,6 +325,8 @@ public class Biology : MonoBehaviour
                 // Make sure max variables are set - they can get off from rounding errors
                 size = maxSize;
                 mass = maxMass;
+                maxHealth = mass * bodySpaceHealthWeight;
+                stomachCapacity = mass * bodySpaceStomachWeight;
                 mature = true;
                 growthEnergySpent = 0.0f;
             }
@@ -336,5 +343,6 @@ public class Biology : MonoBehaviour
         float injuryMultiplier = health / maxHealth;
         agent.speed = baseSpeed * injuryMultiplier;
         agent.angularSpeed = baseSpeed * ROTATION_CONSTANT * injuryMultiplier;
+        speed = agent.speed;
     }
 }

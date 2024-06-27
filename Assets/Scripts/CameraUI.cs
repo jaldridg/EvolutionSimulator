@@ -19,8 +19,6 @@ public class CameraUI : MonoBehaviour
 
     private Vector3 cameraZoomDirection;
 
-    [SerializeField] private Camera camera;
-
     [SerializeField] private LayerMask creatureMask;
 
     public GameObject selectedCreature;
@@ -70,7 +68,8 @@ public class CameraUI : MonoBehaviour
 
     public void OnSelect() {
         // Raycast from camera to mouse to see if we're hovering over a creature
-        Ray camToWorld = camera.ScreenPointToRay(Input.mousePosition);
+        Camera camera = GetComponent<Camera>();
+        Ray camToWorld =camera.ScreenPointToRay(Input.mousePosition);
 
         if (!Physics.Raycast(camToWorld, out RaycastHit hit, float.PositiveInfinity, creatureMask)) {
             selectedCreature = null;
