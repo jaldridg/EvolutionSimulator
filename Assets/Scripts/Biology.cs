@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -37,8 +38,11 @@ public class Biology : MonoBehaviour
     // In other words BSPB = maxHealth + stomachCapacity + brainSize;
     public static float BODY_SPACE_PACKING_BUDGET = 100.0f;
 
-    // The energy cost of growing a cubic unit of creature
-    public static float BODY_SIZE_ENERGY_COST = 100.0f;
+    // The energy cost of growing a cubic unit of the following body parts
+
+    public static float BRAIN_ENERGY_COST = 300.0f;
+    public static float BODY_ENERGY_COST = 100.0f;
+    public static float STOMACH_ENERGY_COST = 50.0f;
 
     public static Color MATURE_BODY_COLOR = new Color (0.02f, 0.71f, 0.86f);
     
@@ -144,7 +148,7 @@ public class Biology : MonoBehaviour
         bodySpaceHealthWeight = Evolution.STARTING_BODY_SPACE_HEALTH_WEIGHT;
 
         maxMass = maxSize * maxSize * maxSize;
-        growthEnergyCost = maxMass * BODY_SIZE_ENERGY_COST;
+        growthEnergyCost = calculateGrowthEnergyCost();
         growthEnergySpent = offspringMassRatio * growthEnergyCost;
 
         // Set starting size based on bodily constants
@@ -230,6 +234,13 @@ public class Biology : MonoBehaviour
         growthEnergySpent = energy;
     }
 
+    private float calculateGrowthEnergyCost() {
+        float brainCost = bodySpaceBrainWeight * BRAIN_ENERGY_COST;
+        float healthCost = bodySpaceHealthWeight * BODY_ENERGY_COST;
+        float stomachCost = bodySpaceStomachWeight * STOMACH_ENERGY_COST;
+        return (brainCost + healthCost + stomachCost) * maxMass / BODY_SPACE_PACKING_BUDGET;
+    }
+
     private void OnTriggerEnter(Collider collider) {
         if (collider.gameObject.tag.Equals("Food")) {
             Destroy(collider.gameObject);
@@ -263,7 +274,7 @@ public class Biology : MonoBehaviour
     private float generateEnergy() {
         // Well fed buff
         food = Math.Max(food - stomachCapacity * DIGESTION_CONSTANT * Time.deltaTime, 0);
-        foodDelta -= stomachCapacity * DIGESTION_CONSTANT;
+        foodDelta = food == 0 ? 0 : -stomachCapacity * DIGESTION_CONSTANT;
         float energyLevel;
         if (food > stomachCapacity * WELL_FED_CONSTANT) {
             // Lerp between full energy and a little bonus energy when full
@@ -314,7 +325,7 @@ public class Biology : MonoBehaviour
         growthEnergySpent += energyBudget * Time.deltaTime;
         if (mature) {
             // Determine the mass of the offspring given the energy spent on it
-            float offspringMass = growthEnergySpent / BODY_SIZE_ENERGY_COST;
+            float offspringMass = growthEnergySpent / growthEnergyCost;
             if (offspringMass >= maxMass * offspringMassRatio) {
                 GameObject offspring = Instantiate(world.creature, transform.position, Quaternion.identity);
                 Biology offspringBio = offspring.GetComponent<Biology>();

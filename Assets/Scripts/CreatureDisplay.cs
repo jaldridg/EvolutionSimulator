@@ -65,6 +65,7 @@ public class CreatureDisplay : MonoBehaviour
     [SerializeField] private TextMeshProUGUI energyDeficiencyRatioText;
     [SerializeField] private TextMeshProUGUI offspringToRegenerationRatioText;
     [SerializeField] private TextMeshProUGUI baseSpaceBrainWeightText;
+    [SerializeField] private TextMeshProUGUI baseSpaceBrainWeightDescription;
     [SerializeField] private TextMeshProUGUI baseSpaceStomachWeightText;
     [SerializeField] private TextMeshProUGUI baseSpaceHealthWeightText;
 
@@ -133,7 +134,7 @@ public class CreatureDisplay : MonoBehaviour
     }
 
     private void setHealthUI(Biology bio) {
-        healthRateText.text = bio.healthDelta == 0 ? "" : String.Format("{0:+#0.0;-#0.0} / s", bio.healthDelta);
+        healthRateText.text = Math.Abs(bio.healthDelta) < 0.05f ? "" : String.Format("{0:+#0.0;-#0.0} / s", bio.healthDelta);
         healthLevelText.text = ((int) bio.health) + " / " + ((int) bio.maxHealth);
         float healthPercent = bio.health / bio.maxHealth;
         healthSlider.value = healthPercent;
@@ -173,7 +174,7 @@ public class CreatureDisplay : MonoBehaviour
         // Show maturation or reproduction progress
         if (bio.mature) {
             growthStateText.text = "REPRODUCING...";
-            float offspringMass = bio.growthEnergySpent / Biology.BODY_SIZE_ENERGY_COST;
+            float offspringMass = bio.growthEnergySpent / bio.growthEnergyCost;
             growthSlider.value = offspringMass / (bio.maxMass * bio.offspringMassRatio);
         } else {
             growthStateText.text = "MATURING...";
@@ -271,6 +272,8 @@ public class CreatureDisplay : MonoBehaviour
         energyDeficiencyRatioText.text = ((int) (bio.energyDeficiencyRatio * 100)) + "%";
         offspringToRegenerationRatioText.text = ((int) (bio.offspringToRegenerationWeight * 100)) + "%";
 
+        int baseEnergyPercent = (int) (bio.bodySpaceBrainWeight / Biology.BODY_SPACE_PACKING_BUDGET * 100);
+        baseSpaceBrainWeightDescription.text = "Vision distance (demands " + baseEnergyPercent + "% of normal energy)";
         baseSpaceBrainWeightText.text = bio.bodySpaceBrainWeight + "<color=white> / " + Biology.BODY_SPACE_PACKING_BUDGET;
         baseSpaceStomachWeightText.text = bio.bodySpaceStomachWeight + "<color=white> / " + Biology.BODY_SPACE_PACKING_BUDGET;
         baseSpaceHealthWeightText.text = bio.bodySpaceHealthWeight + "<color=white> / " + Biology.BODY_SPACE_PACKING_BUDGET;
