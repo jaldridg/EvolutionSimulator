@@ -115,8 +115,10 @@ public class Biology : MonoBehaviour
 
     [HideInInspector] public float speed;
 
-    [HideInInspector] public float growthEnergyBudget;
-    [HideInInspector] public float movementEnergyBudget;
+    [HideInInspector] public float currentBaseEnergyExpenditure;
+    [HideInInspector] public float currentMovementEnergyExpenditure;
+    [HideInInspector] public float currentReproductionEnergyExpenditure;
+    [HideInInspector] public float currentRegenerationEnergyExpenditure;
 
 
     /*** Unity components ***/
@@ -182,8 +184,8 @@ public class Biology : MonoBehaviour
 
         // Expend minimum required energy
         float baseEnergyRatio = bodySpaceBrainWeight / BODY_SPACE_PACKING_BUDGET;
-        float minimumEnergyRequirement = normalEnergyLevel * baseEnergyRatio;
-        currentRemainingEnergy -= minimumEnergyRequirement;
+        currentBaseEnergyExpenditure = normalEnergyLevel * baseEnergyRatio;
+        currentRemainingEnergy -= currentBaseEnergyExpenditure;
 
         // Expend remaining energy on movement and growth
         concious = currentRemainingEnergy > 0;
@@ -194,11 +196,11 @@ public class Biology : MonoBehaviour
             } else {
                 // Find a ratio between movement and growth based on creature's health
                 float movementVersusGrowthRatio = currentRemainingEnergy * WELL_FED_CONSTANT / normalEnergyLevel;
-                growthEnergyBudget = currentRemainingEnergy * movementVersusGrowthRatio;
-                movementEnergyBudget = currentRemainingEnergy - growthEnergyBudget;
+                float growthEnergyBudget = currentRemainingEnergy * movementVersusGrowthRatio;
+                currentMovementEnergyExpenditure = currentRemainingEnergy - growthEnergyBudget;
 
                 expendGrowthEnergy(growthEnergyBudget);
-                expendMovementEnergy(movementEnergyBudget);
+                expendMovementEnergy(currentMovementEnergyExpenditure);
             }
         }
     }
@@ -292,15 +294,16 @@ public class Biology : MonoBehaviour
 
     // Regenerates, matures, or reproduces given an amoutn of energy
     private void expendGrowthEnergy(float energyBudget) {
-        // For now split energy equally
         if (health < maxHealth) {
-            float offspringBudget = energyBudget  * offspringToRegenerationWeight;
-            float regenerationBudget = energyBudget * (1 - offspringToRegenerationWeight);
+            currentReproductionEnergyExpenditure = energyBudget  * offspringToRegenerationWeight;
+            currentRegenerationEnergyExpenditure = energyBudget * (1 - offspringToRegenerationWeight);
 
-            health += regenerationBudget * Time.deltaTime;
-            healthDelta += regenerationBudget;
-            expendDevelopmentEnergy(offspringBudget);
+            health += currentRegenerationEnergyExpenditure * Time.deltaTime;
+            healthDelta += currentRegenerationEnergyExpenditure;
+            expendDevelopmentEnergy(currentReproductionEnergyExpenditure);
         } else {
+            currentReproductionEnergyExpenditure = energyBudget;
+            currentRegenerationEnergyExpenditure = 0.0f;
             expendDevelopmentEnergy(energyBudget);
         }
     }
