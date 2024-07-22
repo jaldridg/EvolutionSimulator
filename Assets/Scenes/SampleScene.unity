@@ -2406,6 +2406,7 @@ MonoBehaviour:
   energyDeficiencyRatioText: {fileID: 1267534243}
   offspringToRegenerationRatioText: {fileID: 498695804}
   baseSpaceBrainWeightText: {fileID: 378973062}
+  baseSpaceBrainWeightDescription: {fileID: 462451762}
   baseSpaceStomachWeightText: {fileID: 1075578292}
   baseSpaceHealthWeightText: {fileID: 1205737363}
   camera: {fileID: 963194227}

@@ -21,7 +21,7 @@ public class WorldManager : MonoBehaviour
 
     // A flat energy cost of movement based on distance travelled
     // Prevents small and super fast creatures from evolving
-    public static float FRICTION_CONSTANT = 0.025f;
+    public static float FRICTION_CONSTANT = 0.0025f;
     
     // Note: planeScale is not tied to ingame size
     private static float planeScale;
@@ -36,6 +36,7 @@ public class WorldManager : MonoBehaviour
             GameObject startingCreature = Instantiate(creature, GetRandomWorldPosition(), Quaternion.identity);
             Biology bio = startingCreature.GetComponent<Biology>();
             bio.increaseGeneration(0);
+            startingCreature.name = "Creature (Gen " + bio.generation + ")";
         }
         StartCoroutine(SpawnFood());
     }

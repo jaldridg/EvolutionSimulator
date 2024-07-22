@@ -174,8 +174,7 @@ public class CreatureDisplay : MonoBehaviour
         // Show maturation or reproduction progress
         if (bio.mature) {
             growthStateText.text = "REPRODUCING...";
-            float offspringMass = bio.growthEnergySpent / bio.growthEnergyCost;
-            growthSlider.value = offspringMass / (bio.maxMass * bio.offspringMassRatio);
+            growthSlider.value = bio.growthEnergySpent / bio.totalOffspringEnergyCost;
         } else {
             growthStateText.text = "MATURING...";
             growthSlider.value = bio.growthEnergySpent / bio.growthEnergyCost;

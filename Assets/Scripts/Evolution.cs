@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Evolution : MonoBehaviour
 {
-    /* The qualities of the first generation of creatures spawned at the start of simulation */
-    public static float STARTING_MAX_SIZE = 1.0f;
+    /* The genes of the first generation of creatures spawned at the start of simulation */
+    public static float STARTING_MAX_SIZE = 2.0f;
     public static float STARTING_OFFSPRING_MASS_RATIO = 0.2f;
 
     public static float STARTING_BASE_ENERGY_RATIO = 0.15f;

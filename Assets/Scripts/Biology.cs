@@ -1,8 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using JetBrains.Annotations;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -12,7 +9,7 @@ public class Biology : MonoBehaviour
 {
 
     /*** Biological constants used for balancing ***/
-    // The speed constant of food digestion
+    // The ratio of the food in the stomach which gets used to generate energy
     public static float DIGESTION_CONSTANT = 0.01f;
     // The percent fullness of the stomach where creatures are well fed
     public static float WELL_FED_CONSTANT = 0.8f;
@@ -28,7 +25,7 @@ public class Biology : MonoBehaviour
     // The multiplier for vision distance given brain size
     public static float VISION_CONSTANT = 0.5f;
 
-    // The energy cost of movement which is multiplied with speed
+    // The higher the number, the less energy required to move
     public static float MOVEMENT_CONSTANT = 0.15f;
 
     // The angular rotation speed multiplier compared to speed
@@ -73,8 +70,10 @@ public class Biology : MonoBehaviour
 
     // The total energy the creature needs to spend to mature or reproduce
     public float growthEnergyCost;
-    // The amount of energy expended towards maturity or the next offspring
+    // The amount of energy expended towards maturity or the next offspring (not including food for new creature)
     public float growthEnergySpent;
+
+    public float totalOffspringEnergyCost;
 
     // The size of the offspring in the creature's body
     public int offspringCount;
@@ -148,18 +147,19 @@ public class Biology : MonoBehaviour
         bodySpaceHealthWeight = Evolution.STARTING_BODY_SPACE_HEALTH_WEIGHT;
 
         maxMass = maxSize * maxSize * maxSize;
-        growthEnergyCost = calculateGrowthEnergyCost();
+        growthEnergyCost = calculateGrowthEnergyCost(maxMass);
         growthEnergySpent = offspringMassRatio * growthEnergyCost;
+        totalOffspringEnergyCost = calculateTotalOffspringEnergy();
 
         // Set starting size based on bodily constants
         updateSize();
 
         // Starting stats
         health = maxHealth;
-        food = stomachCapacity * WELL_FED_CONSTANT;
         age = 0.0f;
         mature = false;
         offspringCount = 0;
+        food = stomachCapacity * WELL_FED_CONSTANT;
 
         gameObject.name = "Creature (Gen " + generation + ")";
 
@@ -234,11 +234,18 @@ public class Biology : MonoBehaviour
         growthEnergySpent = energy;
     }
 
-    private float calculateGrowthEnergyCost() {
+    public float calculateGrowthEnergyCost(float maximumMass) {
         float brainCost = bodySpaceBrainWeight * BRAIN_ENERGY_COST;
         float healthCost = bodySpaceHealthWeight * BODY_ENERGY_COST;
         float stomachCost = bodySpaceStomachWeight * STOMACH_ENERGY_COST;
-        return (brainCost + healthCost + stomachCost) * maxMass / BODY_SPACE_PACKING_BUDGET;
+        return (brainCost + healthCost + stomachCost) * maximumMass / BODY_SPACE_PACKING_BUDGET;
+    }
+
+    public float calculateTotalOffspringEnergy() {
+        float desiredOffspringMass = maxMass * offspringMassRatio;
+        float offspringEnergyCost = calculateGrowthEnergyCost(desiredOffspringMass);
+        float offspringFoodCost = desiredOffspringMass * bodySpaceStomachWeight * 0.5f;
+        return offspringEnergyCost + offspringFoodCost;
     }
 
     private void OnTriggerEnter(Collider collider) {
@@ -257,10 +264,10 @@ public class Biology : MonoBehaviour
     }
 
     private void updateSize() {
-        mass = growthEnergySpent / growthEnergyCost * maxSize;
+        mass = growthEnergySpent / growthEnergyCost * maxMass;
         size = (float) Math.Pow(mass, 1.0f/3.0f);
 
-        normalEnergyLevel = size;   
+        normalEnergyLevel = size * size;   
         float originalMaxHealth = maxHealth;
         maxHealth = mass * bodySpaceHealthWeight;
         // Keep health percent constant
@@ -273,8 +280,11 @@ public class Biology : MonoBehaviour
     // Uses food or health to generate creature energy
     private float generateEnergy() {
         // Well fed buff
-        food = Math.Max(food - stomachCapacity * DIGESTION_CONSTANT * Time.deltaTime, 0);
-        foodDelta = food == 0 ? 0 : -stomachCapacity * DIGESTION_CONSTANT;
+        // Make smaller creatures less energy efficient by incorporating size
+        float sizeEfficiency = (float) Math.Sqrt(maxSize);
+        float digestionRate = stomachCapacity * DIGESTION_CONSTANT / sizeEfficiency;
+        food = Math.Max(food - digestionRate * Time.deltaTime, 0);
+        foodDelta = food == 0 ? 0 : -digestionRate;
         float energyLevel;
         if (food > stomachCapacity * WELL_FED_CONSTANT) {
             // Lerp between full energy and a little bonus energy when full
@@ -303,7 +313,7 @@ public class Biology : MonoBehaviour
         return energyLevel;
     }
 
-    // Regenerates, matures, or reproduces given an amoutn of energy
+    // Regenerates, matures, or reproduces given an amount of energy
     private void expendGrowthEnergy(float energyBudget) {
         if (health < maxHealth) {
             currentReproductionEnergyExpenditure = energyBudget  * offspringToRegenerationWeight;
@@ -324,9 +334,7 @@ public class Biology : MonoBehaviour
         // Reproduce if enough energy has been put into it
         growthEnergySpent += energyBudget * Time.deltaTime;
         if (mature) {
-            // Determine the mass of the offspring given the energy spent on it
-            float offspringMass = growthEnergySpent / growthEnergyCost;
-            if (offspringMass >= maxMass * offspringMassRatio) {
+            if (growthEnergySpent >= totalOffspringEnergyCost) {
                 GameObject offspring = Instantiate(world.creature, transform.position, Quaternion.identity);
                 Biology offspringBio = offspring.GetComponent<Biology>();
                 offspringBio.increaseGeneration(generation);
@@ -350,7 +358,7 @@ public class Biology : MonoBehaviour
     // Calculates how fast the creature can move to exactly expend the energy budget
     private void expendMovementEnergy(float energyBudget) {
         // Solve for speed given formula: movementEnergy = mass * speed * speed * MOVEMENT_CONSTANT + speed * FRICTION_CONSTANT;
-        // Using quadratic formula
+        // Using quadratic formul
         float fc = WorldManager.FRICTION_CONSTANT;
         float determinant = (float) Math.Sqrt(fc * fc + 4 * mass * MOVEMENT_CONSTANT * energyBudget);
         float baseSpeed = (-fc + determinant) / (2 * mass * MOVEMENT_CONSTANT);
