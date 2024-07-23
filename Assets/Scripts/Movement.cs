@@ -55,7 +55,7 @@ public class Movement : MonoBehaviour
 
         float bestDistance = float.PositiveInfinity;
         GameObject closestFood = null;
-        float sightDistance = bio.bodySpaceBrainWeight * Biology.VISION_CONSTANT;
+        float sightDistance = bio.bodySpaceBrainRatio * Biology.VISION_CONSTANT;
         for (int i = 0; i < food.Length - 1; i++) {
             float testDistance = Vector3.Distance(food[i].transform.position, transform.position);
             if (testDistance < bestDistance) {

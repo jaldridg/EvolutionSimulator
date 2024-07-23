@@ -26,6 +26,8 @@ public class WorldManager : MonoBehaviour
     // Note: planeScale is not tied to ingame size
     private static float planeScale;
 
+    [SerializeField] public static float creatureCount;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -37,6 +39,7 @@ public class WorldManager : MonoBehaviour
             Biology bio = startingCreature.GetComponent<Biology>();
             bio.increaseGeneration(0);
             startingCreature.name = "Creature (Gen " + bio.generation + ")";
+            creatureCount++;
         }
         StartCoroutine(SpawnFood());
     }

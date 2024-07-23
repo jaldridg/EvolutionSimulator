@@ -13,7 +13,7 @@ public class CameraUI : MonoBehaviour
 
     [SerializeField]
     private static float CAMERA_MOVE_SPEED = 0.5f;
-    private static float CAMERA_ZOOM_SPEED = 0.02f;
+    private static float CAMERA_ZOOM_SPEED = 0.03f;
 
     private Vector3 cameraMovementDirection;
 

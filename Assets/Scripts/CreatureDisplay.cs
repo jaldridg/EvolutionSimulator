@@ -118,7 +118,7 @@ public class CreatureDisplay : MonoBehaviour
             float creatureX = selectedCreature.transform.position.x;
             float creatureZ = selectedCreature.transform.position.z;
             visionCircle.transform.position = new Vector3(creatureX, 0.0f, creatureZ);
-            float visionDistance = bio.bodySpaceBrainWeight * Biology.VISION_CONSTANT * 2;
+            float visionDistance = bio.bodySpaceBrainRatio * Biology.VISION_CONSTANT * 2;
             visionCircle.transform.localScale = new Vector3 (visionDistance, 1.0f, visionDistance);
 
             setHealthUI(bio);
@@ -271,10 +271,10 @@ public class CreatureDisplay : MonoBehaviour
         energyDeficiencyRatioText.text = ((int) (bio.energyDeficiencyRatio * 100)) + "%";
         offspringToRegenerationRatioText.text = ((int) (bio.offspringToRegenerationWeight * 100)) + "%";
 
-        int baseEnergyPercent = (int) (bio.bodySpaceBrainWeight / Biology.BODY_SPACE_PACKING_BUDGET * 100);
+        int baseEnergyPercent = (int) (bio.bodySpaceBrainRatio * 100);
         baseSpaceBrainWeightDescription.text = "Vision distance (demands " + baseEnergyPercent + "% of normal energy)";
-        baseSpaceBrainWeightText.text = bio.bodySpaceBrainWeight + "<color=white> / " + Biology.BODY_SPACE_PACKING_BUDGET;
-        baseSpaceStomachWeightText.text = bio.bodySpaceStomachWeight + "<color=white> / " + Biology.BODY_SPACE_PACKING_BUDGET;
-        baseSpaceHealthWeightText.text = bio.bodySpaceHealthWeight + "<color=white> / " + Biology.BODY_SPACE_PACKING_BUDGET;
+        baseSpaceBrainWeightText.text = ((int) (epsilon + bio.bodySpaceBrainRatio * 100)) + "<color=white> / " + Biology.BODY_SPACE_PACKING_BUDGET;
+        baseSpaceStomachWeightText.text = ((int) (epsilon + bio.bodySpaceStomachRatio * 100)) + "<color=white> / " + Biology.BODY_SPACE_PACKING_BUDGET;
+        baseSpaceHealthWeightText.text = ((int) (epsilon + bio.bodySpaceHealthRatio * 100)) + "<color=white> / " + Biology.BODY_SPACE_PACKING_BUDGET;
     }
 }

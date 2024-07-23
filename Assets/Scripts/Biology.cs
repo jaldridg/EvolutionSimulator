@@ -9,7 +9,7 @@ public class Biology : MonoBehaviour
 {
 
     /*** Biological constants used for balancing ***/
-    // The ratio of the food in the stomach which gets used to generate energy
+    // The ratio of the food in the stomach which gets used to generate energy per second
     public static float DIGESTION_CONSTANT = 0.01f;
     // The percent fullness of the stomach where creatures are well fed
     public static float WELL_FED_CONSTANT = 0.8f;
@@ -20,10 +20,10 @@ public class Biology : MonoBehaviour
     public static float STARVATION_CONSTANT = 0.25f;
 
     // The ratio of base energy that can be spent to stay alive - anything under this ratio and the creature dies
-    public static float BASE_ENERGY_DEATH_RATIO = 0.5f;
+    public static float BASE_ENERGY_DEATH_RATIO = 50.0f;
 
     // The multiplier for vision distance given brain size
-    public static float VISION_CONSTANT = 0.5f;
+    public static float VISION_CONSTANT = 20.0f;
 
     // The higher the number, the less energy required to move
     public static float MOVEMENT_CONSTANT = 0.15f;
@@ -101,9 +101,9 @@ public class Biology : MonoBehaviour
     // These three variables determine the ratio of the body used for certain functions
     // Higher weight in a category means the creature can store more food, see better, or has more health
     // Since these are normalized, strength in one trait means weakness in the others
-    public float bodySpaceStomachWeight;
-    public float bodySpaceBrainWeight;
-    public float bodySpaceHealthWeight;
+    public float bodySpaceStomachRatio;
+    public float bodySpaceBrainRatio;
+    public float bodySpaceHealthRatio;
 
     public float maxSize;
 
@@ -138,13 +138,15 @@ public class Biology : MonoBehaviour
         bodyMaterial = transform.GetChild(0).GetComponent<Renderer>().material;
 
         // Bodily constants
-        maxSize = Evolution.STARTING_MAX_SIZE;
-        energyDeficiencyRatio = Evolution.STARTING_ENERGY_DEFICIENCY_RATIO;
-        offspringMassRatio = Evolution.STARTING_OFFSPRING_MASS_RATIO;
-        offspringToRegenerationWeight = Evolution.STARTING_OFFSPRING_TO_REGENERATION_WEIGHT;
-        bodySpaceStomachWeight = Evolution.STARTING_BODY_SPACE_STOMACH_WEIGHT;
-        bodySpaceBrainWeight = Evolution.STARTING_BODY_SPACE_BRAIN_WEIGHT;
-        bodySpaceHealthWeight = Evolution.STARTING_BODY_SPACE_HEALTH_WEIGHT;
+        if (generation == 1) {
+            maxSize = Evolution.STARTING_MAX_SIZE;
+            energyDeficiencyRatio = Evolution.STARTING_ENERGY_DEFICIENCY_RATIO;
+            offspringMassRatio = Evolution.STARTING_OFFSPRING_MASS_RATIO;
+            offspringToRegenerationWeight = Evolution.STARTING_OFFSPRING_TO_REGENERATION_WEIGHT;
+            bodySpaceStomachRatio = Evolution.STARTING_BODY_SPACE_STOMACH_RATIO;
+            bodySpaceBrainRatio = Evolution.STARTING_BODY_SPACE_BRAIN_RATIO;
+            bodySpaceHealthRatio = Evolution.STARTING_BODY_SPACE_HEALTH_RATIO;
+        }
 
         maxMass = maxSize * maxSize * maxSize;
         growthEnergyCost = calculateGrowthEnergyCost(maxMass);
@@ -187,8 +189,7 @@ public class Biology : MonoBehaviour
         float currentRemainingEnergy = currentEnergyLevel;
 
         // Expend minimum required energy
-        float baseEnergyRatio = bodySpaceBrainWeight / BODY_SPACE_PACKING_BUDGET;
-        currentBaseEnergyExpenditure = normalEnergyLevel * baseEnergyRatio;
+        currentBaseEnergyExpenditure = normalEnergyLevel * bodySpaceBrainRatio;
         currentRemainingEnergy -= currentBaseEnergyExpenditure;
 
         // Expend remaining energy on movement and growth
@@ -211,18 +212,19 @@ public class Biology : MonoBehaviour
 
     // A less frequently ran update method
     IEnumerator IncreaseAge() {
+        float timeDelta = 0.1f;
         while (true) {
             // Update body limits based on new size
             if (!mature) {
                 updateSize();
                 bodyMaterial.color = Color.Lerp(Color.white, MATURE_BODY_COLOR, growthEnergySpent / growthEnergyCost);
             } else {
-                timeMature += 0.1f;
+                timeMature += timeDelta;
                 float colorDarkening = timeMature / 1000.0f;
                 bodyMaterial.color = MATURE_BODY_COLOR - new Color(0.0f, colorDarkening, colorDarkening);
             }
-            age += 0.1f;
-            yield return new WaitForSeconds(0.1f);
+            age += timeDelta;
+            yield return new WaitForSeconds(timeDelta);
         }
     }
 
@@ -234,17 +236,29 @@ public class Biology : MonoBehaviour
         growthEnergySpent = energy;
     }
 
+    public void mutateGenes(Biology offspringBio) {
+        offspringBio.maxSize = Evolution.mutatePositiveValue(maxSize);
+        offspringBio.offspringMassRatio = Evolution.mutateRatio(offspringMassRatio);
+        offspringBio.energyDeficiencyRatio = Evolution.mutateRatio(energyDeficiencyRatio);
+        offspringBio.offspringToRegenerationWeight = Evolution.mutateRatio(offspringToRegenerationWeight);
+
+        float[] newBodySpaceRatios = Evolution.mutateRatioThree(new float[] {bodySpaceBrainRatio, bodySpaceHealthRatio, bodySpaceStomachRatio});
+        offspringBio.bodySpaceBrainRatio = newBodySpaceRatios[0];
+        offspringBio.bodySpaceHealthRatio = newBodySpaceRatios[1];
+        offspringBio.bodySpaceStomachRatio = newBodySpaceRatios[2];
+    }
+
     public float calculateGrowthEnergyCost(float maximumMass) {
-        float brainCost = bodySpaceBrainWeight * BRAIN_ENERGY_COST;
-        float healthCost = bodySpaceHealthWeight * BODY_ENERGY_COST;
-        float stomachCost = bodySpaceStomachWeight * STOMACH_ENERGY_COST;
-        return (brainCost + healthCost + stomachCost) * maximumMass / BODY_SPACE_PACKING_BUDGET;
+        float brainCost = bodySpaceBrainRatio * BRAIN_ENERGY_COST;
+        float healthCost = bodySpaceHealthRatio * BODY_ENERGY_COST;
+        float stomachCost = bodySpaceStomachRatio * STOMACH_ENERGY_COST;
+        return (brainCost + healthCost + stomachCost) * maximumMass;
     }
 
     public float calculateTotalOffspringEnergy() {
         float desiredOffspringMass = maxMass * offspringMassRatio;
         float offspringEnergyCost = calculateGrowthEnergyCost(desiredOffspringMass);
-        float offspringFoodCost = desiredOffspringMass * bodySpaceStomachWeight * 0.5f;
+        float offspringFoodCost = desiredOffspringMass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET * HUNGER_CONSTANT;
         return offspringEnergyCost + offspringFoodCost;
     }
 
@@ -261,6 +275,7 @@ public class Biology : MonoBehaviour
 
     private void Die() {
         Destroy(gameObject);
+        WorldManager.creatureCount--;
     }
 
     private void updateSize() {
@@ -269,10 +284,10 @@ public class Biology : MonoBehaviour
 
         normalEnergyLevel = size * size;   
         float originalMaxHealth = maxHealth;
-        maxHealth = mass * bodySpaceHealthWeight;
+        maxHealth = mass * bodySpaceHealthRatio * BODY_SPACE_PACKING_BUDGET;
         // Keep health percent constant
         health *= maxHealth / originalMaxHealth;
-        stomachCapacity = mass * bodySpaceStomachWeight;
+        stomachCapacity = mass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET;
 
         transform.localScale = new Vector3(size, size, size);
     }
@@ -337,18 +352,20 @@ public class Biology : MonoBehaviour
             if (growthEnergySpent >= totalOffspringEnergyCost) {
                 GameObject offspring = Instantiate(world.creature, transform.position, Quaternion.identity);
                 Biology offspringBio = offspring.GetComponent<Biology>();
+                mutateGenes(offspringBio);
                 offspringBio.increaseGeneration(generation);
                 offspringBio.setGrowthEnergySpent(offspringMassRatio * offspringMassRatio * offspringMassRatio);
                 growthEnergySpent = 0.0f;
                 offspringCount++;
+                WorldManager.creatureCount++;
             }
         } else {
             if (growthEnergySpent > growthEnergyCost) {
                 // Make sure max variables are set - they can get off from rounding errors
                 size = maxSize;
                 mass = maxMass;
-                maxHealth = mass * bodySpaceHealthWeight;
-                stomachCapacity = mass * bodySpaceStomachWeight;
+                maxHealth = mass * bodySpaceHealthRatio * BODY_SPACE_PACKING_BUDGET;
+                stomachCapacity = mass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET;
                 mature = true;
                 growthEnergySpent = 0.0f;
             }
