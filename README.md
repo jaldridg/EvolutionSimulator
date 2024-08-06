@@ -1,7 +1,11 @@
 # Evolution Simulator
 I've always wanted to make an ecosystem and watch creatures adapt and evolve. Here's what I made:
 
-Insert cool images and descriptions
+![Scene](https://github.com/jaldridg/EvolutionSimulator/blob/main/Screenshots/Scene.png)
+
+![GUI](https://github.com/jaldridg/EvolutionSimulator/blob/main/Screenshots/GUI.png)
+
+I'm making detailed creatures with complex interactions between food, energy, health, movement speed, etc. It's too bad I don't know how to make 3D assets.
 
 ## Version history
 0.2.0: Interface + biology overhaul
