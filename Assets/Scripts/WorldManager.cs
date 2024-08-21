@@ -63,10 +63,17 @@ public class WorldManager : MonoBehaviour
     public void SpawnCreatures() {
         planeScale = gameObject.transform.localScale.x;
         float worldArea = (planeScale * 5) * (planeScale * 5);
+
+        float startingSize = Evolution.STARTING_MAX_SIZE;
+        float startingMass = startingSize * startingSize * startingSize * Evolution.STARTING_OFFSPRING_MASS_RATIO;
+        float foodPerMass = Evolution.STARTING_BODY_SPACE_STOMACH_RATIO * Biology.BODY_SPACE_PACKING_BUDGET;
+        float startingFood = startingMass * foodPerMass * Evolution.STARTING_OFFSPRING_FOOD_RATIO;
+
         for (int i = 0; i < worldArea / SPAWN_SPARCITY; i++) {
             GameObject startingCreature = Instantiate(creature, GetRandomWorldPosition(), Quaternion.identity);
             Biology bio = startingCreature.GetComponent<Biology>();
             bio.increaseGeneration(0);
+            bio.setFoodLevel(startingFood);
             startingCreature.name = "Creature (Gen " + bio.generation + ")";
             creatureCount++;
         }

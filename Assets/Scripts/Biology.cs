@@ -165,7 +165,6 @@ public class Biology : MonoBehaviour
         age = 0.0f;
         mature = false;
         offspringCount = 0;
-        food = stomachCapacity * WELL_FED_CONSTANT;
 
         gameObject.name = "Creature (Gen " + generation + ")";
 
@@ -224,8 +223,8 @@ public class Biology : MonoBehaviour
                 bodyMaterial.color = Color.Lerp(Color.white, MATURE_BODY_COLOR, growthEnergySpent / growthEnergyCost);
             } else {
                 timeMature += timeDelta;
-                float tempTerm = 1000 * Mathf.Pow((float) Math.E, (float) 0.01 * timeMature);
-                float colorDarkening = 1 / (1 + tempTerm);
+                float tempTerm = 1000 * Mathf.Pow((float) Math.E, -0.007f * age);
+                float colorDarkening = 1 / (2 + tempTerm);
                 bodyMaterial.color = MATURE_BODY_COLOR - new Color(0.0f, colorDarkening, colorDarkening);
             }
             age += timeDelta;
@@ -239,6 +238,10 @@ public class Biology : MonoBehaviour
 
     public void setGrowthEnergySpent(float energy) {
         growthEnergySpent = energy;
+    }
+
+    public void setFoodLevel(float foodLevel) {
+        food = foodLevel;
     }
 
     public void mutateGenes(Biology offspringBio) {
@@ -261,11 +264,14 @@ public class Biology : MonoBehaviour
         return (brainCost + healthCost + stomachCost) * maximumMass;
     }
 
+    public float calculateOffspringStartingFood() {
+        float desiredOffspringMass = maxMass * offspringMassRatio;
+        return desiredOffspringMass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET * offspringFoodRatio;
+    }
+
     public float calculateTotalOffspringEnergy() {
         float desiredOffspringMass = maxMass * offspringMassRatio;
-        float offspringEnergyCost = calculateGrowthEnergyCost(desiredOffspringMass);
-        float offspringFoodCost = desiredOffspringMass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET * offspringFoodRatio;
-        return offspringEnergyCost + offspringFoodCost;
+        return calculateGrowthEnergyCost(desiredOffspringMass) + calculateOffspringStartingFood();
     }
 
     private void OnTriggerEnter(Collider collider) {
@@ -361,6 +367,7 @@ public class Biology : MonoBehaviour
                 mutateGenes(offspringBio);
                 offspringBio.increaseGeneration(generation);
                 offspringBio.setGrowthEnergySpent(offspringMassRatio * offspringMassRatio * offspringMassRatio);
+                offspringBio.setFoodLevel(calculateOffspringStartingFood());
                 growthEnergySpent = 0.0f;
                 offspringCount++;
                 WorldManager.creatureCount++;
