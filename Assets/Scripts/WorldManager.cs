@@ -28,24 +28,20 @@ public class WorldManager : MonoBehaviour
 
     [SerializeField] public static float creatureCount;
 
+    [SerializeField] public static float simulationTime;
+
     // Start is called before the first frame update
     void Start()
     {
-        planeScale = gameObject.transform.localScale.x;
-        float worldArea = (planeScale * 5) * (planeScale * 5);
-
-        for (int i = 0; i < worldArea / SPAWN_SPARCITY; i++) {
-            GameObject startingCreature = Instantiate(creature, GetRandomWorldPosition(), Quaternion.identity);
-            Biology bio = startingCreature.GetComponent<Biology>();
-            bio.increaseGeneration(0);
-            startingCreature.name = "Creature (Gen " + bio.generation + ")";
-            creatureCount++;
-        }
+        SpawnCreatures();
         StartCoroutine(SpawnFood());
+        StartCoroutine(CheckForExtinction());
     }
 
     // Update is called once per frame
-    void Update() { }
+    void Update() { 
+        simulationTime += Time.deltaTime;
+    }
 
     // Assumes the world is a square plane
     public static Vector3 GetRandomWorldPosition() {
@@ -62,6 +58,28 @@ public class WorldManager : MonoBehaviour
         NavMeshHit hit;
         NavMesh.SamplePosition(newPosition, out hit, radius, 1);
         return hit.position;
+    }
+
+    public void SpawnCreatures() {
+        planeScale = gameObject.transform.localScale.x;
+        float worldArea = (planeScale * 5) * (planeScale * 5);
+        for (int i = 0; i < worldArea / SPAWN_SPARCITY; i++) {
+            GameObject startingCreature = Instantiate(creature, GetRandomWorldPosition(), Quaternion.identity);
+            Biology bio = startingCreature.GetComponent<Biology>();
+            bio.increaseGeneration(0);
+            startingCreature.name = "Creature (Gen " + bio.generation + ")";
+            creatureCount++;
+        }
+    }
+
+    IEnumerator CheckForExtinction() {
+        while (true) {
+        if (creatureCount == 0) {
+            SpawnCreatures();
+            simulationTime = 0;
+        }
+        yield return new WaitForSeconds(10);
+        }
     }
 
     IEnumerator SpawnFood() {

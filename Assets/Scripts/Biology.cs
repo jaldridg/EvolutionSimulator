@@ -220,7 +220,8 @@ public class Biology : MonoBehaviour
                 bodyMaterial.color = Color.Lerp(Color.white, MATURE_BODY_COLOR, growthEnergySpent / growthEnergyCost);
             } else {
                 timeMature += timeDelta;
-                float colorDarkening = timeMature / 1000.0f;
+                float tempTerm = 1000 * Mathf.Pow((float) Math.E, (float) 0.01 * timeMature);
+                float colorDarkening = 1 / (1 + tempTerm);
                 bodyMaterial.color = MATURE_BODY_COLOR - new Color(0.0f, colorDarkening, colorDarkening);
             }
             age += timeDelta;

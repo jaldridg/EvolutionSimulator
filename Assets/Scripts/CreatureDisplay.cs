@@ -69,6 +69,10 @@ public class CreatureDisplay : MonoBehaviour
     [SerializeField] private TextMeshProUGUI baseSpaceStomachWeightText;
     [SerializeField] private TextMeshProUGUI baseSpaceHealthWeightText;
 
+    [Space(10)]
+    [Header("World Stats")]
+    [SerializeField] private TextMeshProUGUI simulationTimeText;
+    [SerializeField] private TextMeshProUGUI creatureCountText;
 
 
     // Colors
@@ -77,12 +81,12 @@ public class CreatureDisplay : MonoBehaviour
     private Color customYellow = new Color(1.0f, 0.86f, 0.21f);
     private Color customGreen = new Color(0.34f, 1.0f, 0.55f);
     private Color customBlue = new Color(0.0f, 0.72f, 0.74f);
-    private Color customPurple = new Color(0.7f, 0.29f, 1.0f);
+    private Color customPurple = new Color(0.65f, 0.17f, 1.0f);
 
     // Normal colors lerped halfway to white
     private Color customGreenDull = new Color(0.68f, 1.0f, 0.77f);
     private Color customBlueDull = new Color(0.5f, 0.86f, 0.87f);
-    private Color customPurpleDull = new Color(0.85f, 0.65f, 1.0f);
+    private Color customPurpleDull = new Color(0.83f, 0.59f, 1.0f);
 
     [SerializeField] private Camera camera;
 
@@ -110,6 +114,7 @@ public class CreatureDisplay : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        setWorldUI();
         selectedCreature = camUI.selectedCreature;
         if (selectedCreature) {
             wholeUI.SetActive(true);
@@ -131,6 +136,23 @@ public class CreatureDisplay : MonoBehaviour
             visionCircle.transform.position = new Vector3(0.0f, -1.0f, 0.0f);
             wholeUI.SetActive(false);
         }
+    }
+
+    private void setWorldUI() {
+        int rawTime = (int) WorldManager.simulationTime;
+        int hours = rawTime / 3600;
+        int minutes = (rawTime - hours * 3600) / 60;
+        int seconds = (rawTime - minutes * 60 - hours * 3600);
+        String outputText = "Time: ";
+        if (hours > 0) {
+            outputText += hours + "h ";
+        }
+        if (minutes > 0) {
+            outputText += minutes + "m ";
+        }
+        outputText += seconds + "s";
+        simulationTimeText.text = outputText;
+        creatureCountText.text = "Creatures: " + WorldManager.creatureCount;
     }
 
     private void setHealthUI(Biology bio) {
@@ -210,7 +232,7 @@ public class CreatureDisplay : MonoBehaviour
         int BEP = (int) (bio.currentBaseEnergyExpenditure / bio.currentEnergyLevel * 100 + epsilon);
         baseEnergyPercentText.text = "Brain: <color=#" + customGreenDull.ToHexString() + ">" + BEP + "%</color>";
         int MEP = (int) (bio.currentMovementEnergyExpenditure / bio.currentEnergyLevel * 100 + epsilon);
-        movementEnergyPercentText.text = "Movement: <color=#" + customPurpleDull.ToHexString() + ">" + MEP + "%</color>";
+        movementEnergyPercentText.text = "Movement: <color=#" + customPurple.ToHexString() + ">" + MEP + "%</color>";
         float currentGrowthEnergyExpenditure = bio.currentRegenerationEnergyExpenditure + bio.currentReproductionEnergyExpenditure;
         int GEP = (int) (currentGrowthEnergyExpenditure / bio.currentEnergyLevel * 100 + epsilon);
         growthEnergyPercentText.text = "Growth: <color=#" + customBlueDull.ToHexString() + ">" + GEP + "%</color>";

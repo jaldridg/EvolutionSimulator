@@ -39,10 +39,10 @@ public class Evolution : MonoBehaviour
         float mutationAmount = 0.0f;
         if (Random.Range(0.0f, 1.0f) > 0.5f) {
             // Decrease the ratio
-            mutationAmount = Random.Range(-originalValue, 0);
+            mutationAmount = Random.Range(-Mathf.Sqrt(originalValue), 0);
         } else {
             // Increase the ratio
-            mutationAmount = Random.Range(0, 1 - originalValue);
+            mutationAmount = Random.Range(0, Mathf.Sqrt(1 - originalValue));
         }
         return originalValue + mutationAmount * MUTATION_CONSTANT;
     }
