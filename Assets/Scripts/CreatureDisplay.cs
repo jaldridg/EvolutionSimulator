@@ -62,6 +62,7 @@ public class CreatureDisplay : MonoBehaviour
     [Space(10)]
     [Header("Genes Display")]
     [SerializeField] private TextMeshProUGUI offspringMassRatioText;
+    [SerializeField] private TextMeshProUGUI offspringFoodRatioText;
     [SerializeField] private TextMeshProUGUI energyDeficiencyRatioText;
     [SerializeField] private TextMeshProUGUI offspringToRegenerationRatioText;
     [SerializeField] private TextMeshProUGUI baseSpaceBrainWeightText;
@@ -290,6 +291,7 @@ public class CreatureDisplay : MonoBehaviour
 
     private void setGenesUI(Biology bio) {
         offspringMassRatioText.text = ((int) (bio.offspringMassRatio * 100)) + "%";
+        offspringFoodRatioText.text = ((int) (bio.offspringFoodRatio * 100)) + "%";
         energyDeficiencyRatioText.text = ((int) (bio.energyDeficiencyRatio * 100)) + "%";
         offspringToRegenerationRatioText.text = ((int) (bio.offspringToRegenerationWeight * 100)) + "%";
 

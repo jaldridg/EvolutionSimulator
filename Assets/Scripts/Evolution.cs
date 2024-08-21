@@ -9,6 +9,7 @@ public class Evolution : MonoBehaviour
     /* The genes of the first generation of creatures spawned at the start of simulation */
     public static float STARTING_MAX_SIZE = 1.0f;
     public static float STARTING_OFFSPRING_MASS_RATIO = 0.2f;
+    public static float STARTING_OFFSPRING_FOOD_RATIO = 0.5f;
 
     public static float STARTING_ENERGY_DEFICIENCY_RATIO = 0.5f;
     public static float STARTING_OFFSPRING_TO_REGENERATION_WEIGHT = 0.5f;

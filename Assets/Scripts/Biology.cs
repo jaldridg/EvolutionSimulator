@@ -92,6 +92,9 @@ public class Biology : MonoBehaviour
     // Less mass will result in premature offspring which may have difficulty surviving
     public float offspringMassRatio;
 
+    // The ratio of food which offspring will have when born
+    public float offspringFoodRatio;
+
     // The weight of spending energy on reproducing as opposed to regeneration
     // 1.0 fully prioritizes reproducing while 0.0 prioritizes regeneration
     public float offspringToRegenerationWeight;
@@ -142,6 +145,7 @@ public class Biology : MonoBehaviour
             maxSize = Evolution.STARTING_MAX_SIZE;
             energyDeficiencyRatio = Evolution.STARTING_ENERGY_DEFICIENCY_RATIO;
             offspringMassRatio = Evolution.STARTING_OFFSPRING_MASS_RATIO;
+            offspringFoodRatio = Evolution.STARTING_OFFSPRING_FOOD_RATIO;
             offspringToRegenerationWeight = Evolution.STARTING_OFFSPRING_TO_REGENERATION_WEIGHT;
             bodySpaceStomachRatio = Evolution.STARTING_BODY_SPACE_STOMACH_RATIO;
             bodySpaceBrainRatio = Evolution.STARTING_BODY_SPACE_BRAIN_RATIO;
@@ -240,6 +244,7 @@ public class Biology : MonoBehaviour
     public void mutateGenes(Biology offspringBio) {
         offspringBio.maxSize = Evolution.mutatePositiveValue(maxSize);
         offspringBio.offspringMassRatio = Evolution.mutateRatio(offspringMassRatio);
+        offspringBio.offspringFoodRatio = Evolution.mutateRatio(offspringFoodRatio);
         offspringBio.energyDeficiencyRatio = Evolution.mutateRatio(energyDeficiencyRatio);
         offspringBio.offspringToRegenerationWeight = Evolution.mutateRatio(offspringToRegenerationWeight);
 
@@ -259,7 +264,7 @@ public class Biology : MonoBehaviour
     public float calculateTotalOffspringEnergy() {
         float desiredOffspringMass = maxMass * offspringMassRatio;
         float offspringEnergyCost = calculateGrowthEnergyCost(desiredOffspringMass);
-        float offspringFoodCost = desiredOffspringMass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET * HUNGER_CONSTANT;
+        float offspringFoodCost = desiredOffspringMass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET * offspringFoodRatio;
         return offspringEnergyCost + offspringFoodCost;
     }
 
