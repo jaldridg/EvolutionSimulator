@@ -7180,6 +7180,7 @@ GameObject:
   - component: {fileID: 1417938785}
   - component: {fileID: 1417938784}
   - component: {fileID: 1417938789}
+  - component: {fileID: 1417938790}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -7319,6 +7320,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   creature: {fileID: 6054611402904150870, guid: 76ca0455985da5a408bd088f26af08c9, type: 3}
   food: {fileID: 1034438211061819804, guid: 07a89055b1d92794c90e7ff68beea8c6, type: 3}
+--- !u!114 &1417938790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1417938783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82ed549c1c962d84eaaaab666d893c34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1488938607
 GameObject:
   m_ObjectHideFlags: 0

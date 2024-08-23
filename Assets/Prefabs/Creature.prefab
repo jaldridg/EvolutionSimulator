@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 3029799551083294215}
   - component: {fileID: 6117944067629021745}
   - component: {fileID: 7036669163089722134}
-  - component: {fileID: 2958565859749170962}
   - component: {fileID: 5283331277927672333}
   m_Layer: 8
   m_Name: Creature
@@ -98,34 +97,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6463ea117a578974ab3cdccc4a25083f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hungry: 0
-  starving: 0
   concious: 0
   healthy: 0
+  hungry: 0
+  starving: 0
   mature: 0
-  maxHealth: 0
   health: 0
-  stomachCapacity: 0
+  maxHealth: 0
   food: 0
+  stomachCapacity: 0
   normalEnergyLevel: 0
   currentEnergyLevel: 0
-  baseEnergyExpense: 0
   mass: 0
   size: 0
   growthEnergyCost: 0
   growthEnergySpent: 0
-  offspringMass: 0
+  totalOffspringEnergyCost: 0
   offspringCount: 0
   generation: 0
   age: 0
-  timeMature: 0
-  energyDeficiencyPoint: 0
   offspringMassRatio: 0
-  bodySizeEnergyCost: 0
+  offspringFoodRatio: 0
+  offspringToRegenerationWeight: 0
+  energyDeficiencyRatio: 0
+  bodySpaceStomachRatio: 0
+  bodySpaceBrainRatio: 0
+  bodySpaceHealthRatio: 0
   maxSize: 0
   maxMass: 0
   healthDelta: 0
   foodDelta: 0
+  speed: 0
+  currentBaseEnergyExpenditure: 0
+  currentMovementEnergyExpenditure: 0
+  currentReproductionEnergyExpenditure: 0
+  currentRegenerationEnergyExpenditure: 0
 --- !u!114 &7036669163089722134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139,18 +145,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   navMesh: {fileID: 0}
---- !u!114 &2958565859749170962
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6054611402904150870}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82ed549c1c962d84eaaaab666d893c34, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!195 &5283331277927672333
 NavMeshAgent:
   m_ObjectHideFlags: 0

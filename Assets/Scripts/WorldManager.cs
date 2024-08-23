@@ -13,11 +13,11 @@ public class WorldManager : MonoBehaviour
     // The number of world units given to each starting creature
     public static float SPAWN_SPARCITY = 100.0f;
 
-    // The rate that food spawns in the world (food spawns per second)
+    // Food spawns per second in the world
     public static float FOOD_RATE = 1.0f;
 
-    // How much food satisfies a creature's need to eat
-    public static float FOOD_NUTRITION = 30.0f;
+    // How much energy can be extracted from on cubic meter of food
+    public static float FOOD_ENERGY_CONSTANT = 200.0f;
 
     // A flat energy cost of movement based on distance travelled
     // Prevents small and super fast creatures from evolving
@@ -66,17 +66,17 @@ public class WorldManager : MonoBehaviour
 
         float startingSize = Evolution.STARTING_MAX_SIZE;
         float startingMass = startingSize * startingSize * startingSize * Evolution.STARTING_OFFSPRING_MASS_RATIO;
-        float foodPerMass = Evolution.STARTING_BODY_SPACE_STOMACH_RATIO * Biology.BODY_SPACE_PACKING_BUDGET;
+        float foodPerMass = Evolution.STARTING_BODY_SPACE_STOMACH_RATIO * Biology.BODY_SPACE_PACKING_BUDGET * 10 /* 10x to convert to kg */;
         float startingFood = startingMass * foodPerMass * Evolution.STARTING_OFFSPRING_FOOD_RATIO;
 
-        for (int i = 0; i < worldArea / SPAWN_SPARCITY; i++) {
+        //for (int i = 0; i < worldArea / SPAWN_SPARCITY; i++) {
             GameObject startingCreature = Instantiate(creature, GetRandomWorldPosition(), Quaternion.identity);
             Biology bio = startingCreature.GetComponent<Biology>();
             bio.increaseGeneration(0);
-            bio.setFoodLevel(startingFood);
+            bio.setStomach(startingFood, 1.0f);
             startingCreature.name = "Creature (Gen " + bio.generation + ")";
             creatureCount++;
-        }
+        //}
     }
 
     IEnumerator CheckForExtinction() {
@@ -91,9 +91,15 @@ public class WorldManager : MonoBehaviour
 
     IEnumerator SpawnFood() {
         while (true) {
-            float foodSize = food.transform.GetChild(0).transform.localScale.y;
-            Vector3 foodPos = GetRandomWorldPosition() + Vector3.up * (foodSize / 2);
-            Instantiate(food, foodPos, Quaternion.identity);
+            float radius = (0.6f + Random.Range(-0.1f, 0.1f)) / 2;
+            Vector3 foodPos = GetRandomWorldPosition() + Vector3.up * radius;
+            GameObject fruitObject = Instantiate(food, foodPos, Quaternion.identity);
+            food.transform.GetChild(0).transform.localScale = new Vector3(radius, radius, radius);
+
+            Fruit fruit = fruitObject.GetComponent<Fruit>();
+            float nutrition = Random.Range(0.8f, 1.2f);
+            fruit.setStats(radius, nutrition);
+            
             yield return new WaitForSeconds(1 / FOOD_RATE);
         }
     }

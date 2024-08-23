@@ -8,6 +8,11 @@ I've always wanted to make an ecosystem and watch creatures adapt and evolve. He
 I'm making detailed creatures with complex interactions between food, energy, health, movement speed, etc. It's too bad I don't know how to make 3D assets.
 
 ## Version history
+0.2.1: Evolution
+- Creatures have traits which mutate between offspring
+    - Added a new variable which determines the food level of creatures which are born
+- Added a creature count and simulation time counter in the corner
+    - Simulation restarts if all creatures die
 0.2.0: Interface + biology overhaul
 - Interface
     - Visual changes
@@ -38,7 +43,6 @@ I'm making detailed creatures with complex interactions between food, energy, he
         - The more weight in a trait, the better a creature performs (at the cost of other traits)
     - Vision
         - Creature's now have finite awareness of food based on their distance from the creature
-    - Lots of new variables added which will later change from creature to creature via evolution
     
 0.1.2: Basic interface
 - Camera

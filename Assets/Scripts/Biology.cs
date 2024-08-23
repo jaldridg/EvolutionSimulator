@@ -60,7 +60,11 @@ public class Biology : MonoBehaviour
     [HideInInspector] public float maxHealth;
 
     public float food;
+    // Measured in kilograms
     [HideInInspector] public float stomachCapacity;
+
+    // The average nutrition in the creatue's stomach
+    public float foodNutrition;
 
     [HideInInspector] public float normalEnergyLevel;
     public float currentEnergyLevel;
@@ -99,7 +103,7 @@ public class Biology : MonoBehaviour
     // 1.0 fully prioritizes reproducing while 0.0 prioritizes regeneration
     public float offspringToRegenerationWeight;
     // The energy ratio which will be maintained by sacrificing health
-    [HideInInspector] public float energyDeficiencyRatio;
+    public float energyDeficiencyRatio;
 
     // These three variables determine the ratio of the body used for certain functions
     // Higher weight in a category means the creature can store more food, see better, or has more health
@@ -240,8 +244,9 @@ public class Biology : MonoBehaviour
         growthEnergySpent = energy;
     }
 
-    public void setFoodLevel(float foodLevel) {
+    public void setStomach(float foodLevel, float nutrition) {
         food = foodLevel;
+        foodNutrition = nutrition;
     }
 
     public void mutateGenes(Biology offspringBio) {
@@ -266,7 +271,7 @@ public class Biology : MonoBehaviour
 
     public float calculateOffspringStartingFood() {
         float desiredOffspringMass = maxMass * offspringMassRatio;
-        return desiredOffspringMass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET * offspringFoodRatio;
+        return desiredOffspringMass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET * offspringFoodRatio * 10 /* 10x to convert to kg */;
     }
 
     public float calculateTotalOffspringEnergy() {
@@ -277,12 +282,16 @@ public class Biology : MonoBehaviour
     private void OnTriggerEnter(Collider collider) {
         if (collider.gameObject.tag.Equals("Food")) {
             Destroy(collider.gameObject);
-            Eat();
+            Eat(collider.gameObject);
         }
     }
 
-    public void Eat() {
-        food = Mathf.Min(food + WorldManager.FOOD_NUTRITION, stomachCapacity);
+    public void Eat(GameObject foodObject) { 
+        Fruit fruit = foodObject.GetComponent<Fruit>();
+        float foodEaten = Mathf.Min(fruit.mass, stomachCapacity - food);
+        float newFood = food + foodEaten;
+        foodNutrition = (food * foodNutrition + foodEaten * fruit.nutrition) / newFood;
+        food += foodEaten;
     }
 
     private void Die() {
@@ -299,19 +308,20 @@ public class Biology : MonoBehaviour
         maxHealth = mass * bodySpaceHealthRatio * BODY_SPACE_PACKING_BUDGET;
         // Keep health percent constant
         health *= maxHealth / originalMaxHealth;
-        stomachCapacity = mass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET;
+        stomachCapacity = mass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET * 10 /* convert to kg by doing x10 */;
 
         transform.localScale = new Vector3(size, size, size);
     }
 
     // Uses food or health to generate creature energy
     private float generateEnergy() {
-        // Well fed buff
-        // Make smaller creatures less energy efficient by incorporating size
+        // Digest food, and reward larger, energy efficient creatures
         float sizeEfficiency = (float) Math.Sqrt(maxSize);
         float digestionRate = stomachCapacity * DIGESTION_CONSTANT / sizeEfficiency;
         food = Math.Max(food - digestionRate * Time.deltaTime, 0);
         foodDelta = food == 0 ? 0 : -digestionRate;
+
+        // Well fed buff
         float energyLevel;
         if (food > stomachCapacity * WELL_FED_CONSTANT) {
             // Lerp between full energy and a little bonus energy when full
@@ -320,13 +330,15 @@ public class Biology : MonoBehaviour
         // Starvation penalty
         } else if (food < stomachCapacity * STARVATION_CONSTANT) {
             // Lerps between full and no energy when starving
-            // TODO: Go back to 50% minimum energy
             energyLevel = normalEnergyLevel * (food / (stomachCapacity * STARVATION_CONSTANT));
 
         // Normal enery levels
         } else {
             energyLevel = normalEnergyLevel;
         }
+
+        // Food nutrition multiplier
+        energyLevel *= foodNutrition;
 
         starving = energyLevel / normalEnergyLevel < energyDeficiencyRatio;
         // If needed, maintain base energy levels by sacrificing the body (health) for energy
@@ -367,7 +379,7 @@ public class Biology : MonoBehaviour
                 mutateGenes(offspringBio);
                 offspringBio.increaseGeneration(generation);
                 offspringBio.setGrowthEnergySpent(offspringMassRatio * offspringMassRatio * offspringMassRatio);
-                offspringBio.setFoodLevel(calculateOffspringStartingFood());
+                offspringBio.setStomach(calculateOffspringStartingFood(), 1.0f);
                 growthEnergySpent = 0.0f;
                 offspringCount++;
                 WorldManager.creatureCount++;
@@ -378,9 +390,9 @@ public class Biology : MonoBehaviour
                 size = maxSize;
                 mass = maxMass;
                 maxHealth = mass * bodySpaceHealthRatio * BODY_SPACE_PACKING_BUDGET;
-                stomachCapacity = mass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET;
+                stomachCapacity = mass * bodySpaceStomachRatio * BODY_SPACE_PACKING_BUDGET * 10 /* convert to kg by doing x10 */;
                 mature = true;
-                growthEnergySpent = 0.0f;
+                growthEnergySpent -= growthEnergyCost;
             }
         }
     }

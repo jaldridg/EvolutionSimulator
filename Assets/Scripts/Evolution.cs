@@ -15,8 +15,8 @@ public class Evolution : MonoBehaviour
     public static float STARTING_OFFSPRING_TO_REGENERATION_WEIGHT = 0.5f;
 
     // Trifold ratio - these three values should add to 1
-    public static float STARTING_BODY_SPACE_STOMACH_RATIO = 0.5f;
-    public static float STARTING_BODY_SPACE_HEALTH_RATIO = 0.5f;
+    public static float STARTING_BODY_SPACE_STOMACH_RATIO = 0.25f;
+    public static float STARTING_BODY_SPACE_HEALTH_RATIO = 0.75f;
     public static float STARTING_BODY_SPACE_BRAIN_RATIO = 0.0f;
 
     // The maximum ratio of a gene which is added to or sutracted from the parent's gene
