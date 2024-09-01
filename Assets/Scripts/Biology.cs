@@ -204,15 +204,15 @@ public class Biology : MonoBehaviour
         if (concious) {
             // Priority is on creature's movement when injured and on growth when healthy
             if (starving) {
+                currentMovementEnergyExpenditure = currentRemainingEnergy;
                 expendMovementEnergy(currentRemainingEnergy);
             } else {
-                // Find a ratio between movement and growth based on creature's health
-                float movementVersusGrowthRatio = currentRemainingEnergy * WELL_FED_CONSTANT / normalEnergyLevel;
-                float growthEnergyBudget = currentRemainingEnergy * movementVersusGrowthRatio;
-                currentMovementEnergyExpenditure = currentRemainingEnergy - growthEnergyBudget;
+                float minimumEnergy = energyDeficiencyRatio * normalEnergyLevel;
+                float growthEnergyBudget = (currentRemainingEnergy * (currentRemainingEnergy - minimumEnergy)) / normalEnergyLevel;
+                float movementEnergyBudget = currentRemainingEnergy - growthEnergyBudget;
 
                 expendGrowthEnergy(growthEnergyBudget);
-                expendMovementEnergy(currentMovementEnergyExpenditure);
+                expendMovementEnergy(movementEnergyBudget);
             }
         }
     }
@@ -399,6 +399,7 @@ public class Biology : MonoBehaviour
 
     // Calculates how fast the creature can move to exactly expend the energy budget
     private void expendMovementEnergy(float energyBudget) {
+        currentMovementEnergyExpenditure = energyBudget;
         // Solve for speed given formula: movementEnergy = mass * speed * speed * MOVEMENT_CONSTANT + speed * FRICTION_CONSTANT;
         // Using quadratic formul
         float fc = WorldManager.FRICTION_CONSTANT;

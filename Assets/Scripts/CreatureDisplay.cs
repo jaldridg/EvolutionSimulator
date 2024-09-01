@@ -229,7 +229,7 @@ public class CreatureDisplay : MonoBehaviour
             energyStateText.color = Color.white;
         }
 
-        // TODO: Percentage displays
+        // Percentage displays
         int BEP = (int) (bio.currentBaseEnergyExpenditure / bio.currentEnergyLevel * 100 + epsilon);
         baseEnergyPercentText.text = "Brain: <color=#" + customGreenDull.ToHexString() + ">" + BEP + "%</color>";
         int MEP = (int) (bio.currentMovementEnergyExpenditure / bio.currentEnergyLevel * 100 + epsilon);
@@ -238,7 +238,7 @@ public class CreatureDisplay : MonoBehaviour
         int GEP = (int) (currentGrowthEnergyExpenditure / bio.currentEnergyLevel * 100 + epsilon);
         growthEnergyPercentText.text = "Growth: <color=#" + customBlueDull.ToHexString() + ">" + GEP + "%</color>";
 
-        // TODO: Sub-percentage displays
+        // Sub-percentage displays
         speedText.text = String.Format("Speed: {0:0.00}", bio.speed);
         float healthPercent = bio.health / bio.maxHealth;
         if (healthPercent < 1) {
@@ -246,22 +246,22 @@ public class CreatureDisplay : MonoBehaviour
         }
 
         // Energy bar - split into three like a stacked bar chart
-        float energyBarScalingConstant = statBarWidth * energyPercent * 0.01f; // Reverses the percentage making value 0 to 1
+        float displayWidthScaling = statBarWidth * Math.Min(energyPercent, 1.0f) * 0.01f; // Reverses the percentage making value 0 to 1
 
         RectTransform baseEnergyRT = baseEnergySlider.gameObject.GetComponent<RectTransform>();
-        float baseEnergyBarWidth = BEP * energyBarScalingConstant;
+        float baseEnergyBarWidth = BEP * displayWidthScaling;
         float cumulativeOffset = statBarOffset + baseEnergyBarWidth / 2;
         baseEnergyRT.sizeDelta = new Vector2(baseEnergyBarWidth, baseEnergyRT.sizeDelta[1]);
         baseEnergyRT.position = new Vector3(cumulativeOffset, baseEnergyRT.position.y, baseEnergyRT.position.z);
 
         RectTransform growthEnergyRT = growthEnergySlider.gameObject.GetComponent<RectTransform>();
-        float growthEnergyBarWidth = GEP * energyBarScalingConstant;
+        float growthEnergyBarWidth = GEP * displayWidthScaling;
         cumulativeOffset += baseEnergyBarWidth / 2 + growthEnergyBarWidth / 2;
         growthEnergyRT.sizeDelta = new Vector2(growthEnergyBarWidth, growthEnergyRT.sizeDelta[1]);
         growthEnergyRT.position = new Vector3(cumulativeOffset, growthEnergyRT.position.y, growthEnergyRT.position.z);
         
         RectTransform movementEnergyRT = movementEnergySlider.gameObject.GetComponent<RectTransform>();
-        float movementEnergyBarWidth = MEP * energyBarScalingConstant;
+        float movementEnergyBarWidth = MEP * displayWidthScaling;
         cumulativeOffset += growthEnergyBarWidth / 2 + movementEnergyBarWidth / 2;
         movementEnergyRT.sizeDelta = new Vector2(movementEnergyBarWidth, movementEnergyRT.sizeDelta[1]);
         movementEnergyRT.position = new Vector3(cumulativeOffset, movementEnergyRT.position.y, movementEnergyRT.position.z);
@@ -277,7 +277,6 @@ public class CreatureDisplay : MonoBehaviour
         energyBarBackgroundSliderRT.sizeDelta = new Vector2(energyBarBackgroundWidth, energyBarBackgroundSliderRT.sizeDelta[1]);
         energyBarBackgroundSliderRT.position = new Vector3(cumulativeOffset, energyBarBackgroundSliderRT.position.y, energyBarBackgroundSliderRT.position.z);
         
-
 
         int reproductionEP = (int) (bio.currentReproductionEnergyExpenditure / currentGrowthEnergyExpenditure * 100 + epsilon);
         if (bio.mature) {
