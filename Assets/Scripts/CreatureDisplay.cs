@@ -29,6 +29,7 @@ public class CreatureDisplay : MonoBehaviour
     [SerializeField] private Slider foodSlider;
     [SerializeField] private TextMeshProUGUI foodRateText;
     [SerializeField] private TextMeshProUGUI foodLevelText;
+    [SerializeField] private TextMeshProUGUI nutritionLevelText;
 
     // Growth
     [Space(10)]
@@ -176,6 +177,7 @@ public class CreatureDisplay : MonoBehaviour
     private void setFoodUI(Biology bio) {
         foodRateText.text = bio.foodDelta == 0 ? "" : String.Format("{0:+#0.0;-#0.0} / s", bio.foodDelta);
         foodLevelText.text = ((int) bio.food) + " / " + ((int) bio.stomachCapacity);
+        nutritionLevelText.text = "Nutrition: " + String.Format("{+#0.00}", bio.foodNutrition);
         float foodPercent = bio.food / bio.stomachCapacity;
         foodSlider.value = foodPercent;
         if (foodPercent > Biology.WELL_FED_CONSTANT) {
